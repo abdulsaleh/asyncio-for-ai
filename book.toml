@@ -1,0 +1,5 @@
+[book]
+authors = ["AbdulSaleh"]
+language = "en"
+src = "src"
+title = "AsyncIO for AI Applications"
