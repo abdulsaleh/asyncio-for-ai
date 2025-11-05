@@ -1,35 +1,33 @@
 # Introduction
 
-If you've ever used model APIs like the OpenAI API, you've probably encountered `asyncio` and `async/await` syntax.
+If you've used the OpenAI or Gemini API, you've likely seen `asyncio` and `async/await` scattered throughout example code. Maybe you copied the syntax without fully understanding it. Maybe you've wondered if it actually matters.
 
-There are many `asyncio` guides out there, but most focus on concurrency primitives, coroutines, event loops, and other low-level details.
+It matters.
 
-This guide takes a different approach: learning through building cool stuff, especially if you're interested in AI and LLM applications.
+Most `asyncio` tutorials talk about concurrency primitives, event loops, and coroutines. This guide focuses on why it matters and what you can build with it. If you're building AI or LLM applications, `asyncio` is important to writing fast, scalable systems.
 
-`asyncio` makes it easy to write concurrent code in Python. Concurrency powers many AI applications, from efficient data pipelines and web crawlers to interactive tool-calling agents. 
+From data pipelines that process thousands of documents in parallel to agents that handle multiple tool calls simultaneously, concurrency is everywhere in modern AI development. This guide will show you how to harness it. 
 
 
-## How this guide is structured
+## What you'll build
 
-This guide covers six real-world applications of `asyncio` relevant to AI:
+This guide walks through seven real-world applications of `asyncio` in action:
 
-* LLM Responses
-* Rate Limiters
-* Request Batchers
-* Data Pipelines
-* Web Crawlers
-* Tool-Calling Agents
-* Parallel Agents
+* **LLM Responses** — Call LLM APIs concurrently without blocking
+* **Rate Limiters** — Control API request throughput to stay within rate limits
+* **Request Batchers** — Combine multiple requests for efficiency
+* **Data Pipelines** — Process large datasets concurrently
+* **Web Crawlers** — Crawl and parse web pages in parallel
+* **Tool-Calling Agents** — Build agents that execute tools concurrently
+* **Parallel Agents** — Run multiple independent agents simultaneously
 
-Inspired by John Crickett's [Coding Challenges](https://codingchallenges.substack.com/), each section is split into a "challenge" that describes the problem and a "solution" that walks through the implementation.
+Each section follows a challenge-solution format inspired by John Crickett's [Coding Challenges](https://codingchallenges.substack.com/). You'll see the problem first, then walk through a complete implementation.
 
-Try to tackle each challenge without looking at the solution first. Even if you can't solve it initially, you'll learn more from [productive failure](https://pubmed.ncbi.nlm.nih.gov/33180211/).
+I encourage you to attempt each challenge before reading the solution. Research shows that [productive failure](https://pubmed.ncbi.nlm.nih.gov/33180211/) leads to deeper learning—even if you don't solve it perfectly, the struggle makes the solution more memorable.
 
 
 ## About me
 
-I'm a software engineer at Google, where I build infrastructure for Gemini fine-tuning
-and batch inference. I care about building tools that make AI development easier, more
-efficient, and more accessible.
+I'm a software engineer at Google, where I build infrastructure for Gemini fine-tuning and batch inference. I care about making AI development easier, faster, and more accessible. 
 
-Check out my [blog](https://www.abdulsaleh.dev/) for other guides I've written.
+If you find this guide helpful, check out my at [abdulsaleh.dev](https://www.abdulsaleh.dev/).
