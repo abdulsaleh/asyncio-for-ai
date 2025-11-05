@@ -28,4 +28,15 @@ Note how I said *concurrently*, not in parallel. Technically, there is only one 
 
 
 
+### Await, Create, and Gather
 
+To start using `asyncio`, you need to learn about `await`, `create_task`, and `gather`.
+
+
+`await` defines a point where a function can pause and yeild control for other tasks to execute.
+
+```python
+
+
+
+```
