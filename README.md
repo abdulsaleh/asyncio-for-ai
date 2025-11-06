@@ -4,7 +4,7 @@ A practical guide to using Python's `asyncio` for building faster, more scalable
 
 ## Read the Book
 
-**[Read online at asyncio-for-ai.github.io](https://asyncio-for-ai.github.io)**
+**[Read online at asyncio-for-ai.github.io](https://abdulsaleh.github.io/asyncio-for-ai/)**
 
 ## About This Book
 
