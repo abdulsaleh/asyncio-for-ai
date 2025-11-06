@@ -1,5 +1,5 @@
 [book]
-authors = ["AbdulSaleh"]
+authors = ["Abdul Saleh"]
 language = "en"
 src = "src"
 title = "AsyncIO for AI Applications"
