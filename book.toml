@@ -3,3 +3,9 @@ authors = ["AbdulSaleh"]
 language = "en"
 src = "src"
 title = "AsyncIO for AI Applications"
+
+[build]
+build-dir = "public"
+
+[output.html]
+cname="example.hotbox.zip"

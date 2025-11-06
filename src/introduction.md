@@ -26,9 +26,12 @@ Each section follows a challenge-solution format inspired by John Crickett's [Co
 
 I encourage you to attempt each challenge before reading the solution. Research shows that [productive failure](https://pubmed.ncbi.nlm.nih.gov/33180211/) leads to deeper learning, even if you struggle and can't come up with the solution.
 
-
 ## About me
 
 I'm a software engineer at Google, where I build infrastructure for Gemini fine-tuning and batch inference. I care about making AI development easier, faster, and more accessible.
 
-If you find this guide helpful, check out my at [abdulsaleh.dev](https://www.abdulsaleh.dev/).
+If you find this guide helpful, check out my blog at [abdulsaleh.dev](https://www.abdulsaleh.dev/).
+
+## Source Code
+
+The markdown source code for this book is available on [github](https://github.com/abdulsaleh/asyncio-for-ai). This book was compiled and built in Rust using [mdbook](https://rust-lang.github.io/mdBook/).

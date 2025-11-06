@@ -1,4 +1,60 @@
-# Async Gemini API
+# Async LLM Responses
+
+
+## Challenge
+
+This challenge is to build an asynchronous LLM client. 
+
+
+
+### Step 0
+
+Get a Gemini API key. We use the Gemini API here because it has a generous free tier. 
+
+
+### Step 1
+
+```
+from google import genai
+
+client = genai.Client(api_key="YOUR_API_KEY")
+
+response = await client.aio.models.generate_content(
+    model='gemini-flash-latest',
+    contents='Tell me a story in 300 words.'
+)
+```
+
+
+### Step 2
+
+
+
+
+### Step 3
+
+
+```
+from google import genai
+
+client = genai.Client()
+
+response = await client.aio.models.generate_content(
+    model='gemini-flash-latest',
+    contents='Tell me a story in 300 words.'
+)
+```
+
+
+### Open Questions
+* What happens when you call 100 concurrently? At what point do you get throttled? 
+* 
+
+
+## Solution
+
+
+
 
 
 
