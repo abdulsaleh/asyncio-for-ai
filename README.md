@@ -54,7 +54,3 @@ The book will be available at `http://localhost:3000`.
 ## Contributing
 
 Found a typo or have a suggestion? Feel free to open an issue or submit a pull request!
-
-## License
-
-All content is available for educational purposes.
