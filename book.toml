@@ -6,6 +6,3 @@ title = "AsyncIO for AI Applications"
 
 [build]
 build-dir = "public"
-
-[output.html]
-cname="example.hotbox.zip"
