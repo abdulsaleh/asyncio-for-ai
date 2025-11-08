@@ -113,7 +113,8 @@ time python script.py
 Now let's define some coroutines and use `asyncio.gather()` to create and schedule the tasks concurrently:
 
 ```python
-import asyncio 
+import asyncio
+from google import genai 
 
 _NUM_REQUESTS = 10
 
