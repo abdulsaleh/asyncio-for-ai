@@ -8,7 +8,7 @@
 
 # Calling External APIs
 
-- [LLM Responses]()
+- [LLM Responses](llm-responses.md)
 - [Rate Limiters]()
 - [Request Batchers]()
 
