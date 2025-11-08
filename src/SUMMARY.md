@@ -6,7 +6,7 @@
 
 - [The Basics]()
 
-# Calling External APIs
+# Calling Async APIs
 
 - [LLM Responses](llm-responses.md)
 - [Rate Limiters]()
