@@ -1,26 +1,22 @@
 # Async LLM Responses
 
-
 ## Challenge
 
-This challenge is to build an asynchronous LLM client. 
-
-
+This challenge is to build an asynchronous LLM client.
 
 ### Step 0
 
-Get a Gemini [API key](https://aistudio.google.com/app/api-keys) from Google AI Studio. We use the Gemini API because it has a generous free tier. 
-
+Get a Gemini [API key](https://aistudio.google.com/app/api-keys) from Google AI Studio. We use the Gemini API because it has a generous free tier.
 
 ### Step 1
-In this step, your goal is to verify you can call the Gemini API and get some responses. 
+
+In this step, your goal is to verify you can call the Gemini API and get some responses.
 
 Install the Google [GenAI SDK](https://ai.google.dev/gemini-api/docs/quickstart) and make your first request. Write your code to `script.py`.
 
 ```bash
 pip install -q -U google-genai
 ```
-
 
 ```python
 from google import genai
@@ -54,12 +50,11 @@ response = await client.aio.models.generate_content(
 )
 ```
 
-Now run and time your code. How long does it take? 
+Now run and time your code. How long does it take?
 
 ```admonish title="Tip" collapsible=true
 You need to use `asyncio.gather()`. Take a look at the basics section.
 ```
-
 
 ### Step 4
 
@@ -73,13 +68,15 @@ Now take some time to attempt the challenge before looking at the solution!
 
 ---
 
-
 ## Solution
 
-### Step 1
-We have our API key. 
+Below is a walkthrough of one possible solution. Your implementation may differ, and that's okay! The key concepts are using `async/await` with the Gemini API and `asyncio.gather()` for concurrency
 
-### Step 2
+### Step 1 - Solution
+
+We have our API key.
+
+### Step 2 - Solution
 
 Let's call `generate_content()` in a loop:
 
@@ -111,7 +108,7 @@ time python script.py
 > 
 ```
 
-### Step 3
+### Step 3 - Solution
 
 Now let's define some coroutines and use `asyncio.gather()` to create and schedule the tasks concurrently:
 
@@ -135,15 +132,14 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-We only create the client once. We only need to establish the client connection once. Creating multiple clients would add uneccessary overhead. 
-
+We only create the client once. We only need to establish the client connection once. Creating multiple clients would add uneccessary overhead.
 
 ```bash
 time python script.py
 > 
 ```
 
-## Step 4
+## Step 4 - Solution
 
 If we increase `_NUM_REQUESTS` we quickly hit the rate limit.
 
