@@ -1,18 +1,22 @@
 # AsyncIO for AI Applications
 
-A practical guide to using Python's `asyncio` for building faster, more scalable AI and LLM applications.
+A practical guide to using Python's `asyncio` for building faster, more scalable LLM and AI applications.
 
-## Read the Book
+## Read the Guide
 
 **[Read online at asyncio-for-ai.github.io](https://abdulsaleh.github.io/asyncio-for-ai/)**
 
-## About This Book
+## About This Guide
 
-If you've used the OpenAI or Gemini API, you've likely seen `asyncio` scattered throughout the code examples. Maybe you copied `async/await` without understanding what it does. Maybe you've wondered if it actually matters.
+If you've used the OpenAI or Gemini API, you've probably seen `asyncio` scattered throughout the code examples. Maybe you copied `async/await` without understanding what it does. Maybe you've wondered if it actually matters.
 
 It matters.
 
-Most `asyncio` tutorials talk about concurrency primitives, event loops, and coroutines. **This guide is different**. It focuses on why `asyncio` matters and what you can build with it.
+If you're building AI applications, `asyncio` can keep your code fast and responsive, whether you're making hundreds of API calls, streaming data through a pipeline, or coordinating agent tool calls.
+
+Most `asyncio` tutorials explain how it works, focusing on concurrency primitives, event loops, and coroutines. **This guide is about why it matters.**
+
+You’ll learn how to use `asyncio` to build faster, more scalable systems. 
 
 ## What You'll Learn
 
@@ -20,9 +24,9 @@ This guide walks through seven real-world applications of `asyncio`:
 
 - **LLM Responses** — Call LLM APIs concurrently without blocking
 - **Rate Limiters** — Control API request throughput to stay within rate limits
-- **Request Batchers** — Combine multiple requests for efficiency
-- **Data Pipelines** — Process large datasets concurrently
-- **Web Crawlers** — Crawl and parse web pages in parallel
+- **Request Batchers** — Batch multiple requests for efficiency
+- **Data Pipelines** — Process large datasets with producer-consumer pipelines
+- **Web Crawlers** — Efficiently crawl the web and parse web pages
 - **Tool-Calling Agents** — Build agents that execute tools concurrently
 - **Parallel Agents** — Run multiple independent agents simultaneously
 
