@@ -56,17 +56,22 @@ response = await client.aio.models.generate_content(
 
 Now run and time your code. How long does it take? 
 
-<details>
-    <summary>Hint</summary>
-    You need to use `asyncio.gather()`. Take a look at the basics section.
-</details>
+```admonish title="Tip" collapsible=true
+You need to use `asyncio.gather()`. Take a look at the basics section.
+```
 
 
 ### Step 4
 
 What happens if you increase the number of iterations? At what point do you hit rate limits?
 
-See the [Rate Limiters](#rate-limiters.md) chapter to build your own rate limiter and avoid hitting rate limits.
+See the [Rate Limiters](rate-limiters.md) chapter to build your own rate limiter and avoid hitting rate limits.
+
+```admonish success title=""
+Now take some time to attempt the challenge before looking at the solution!
+```
+
+---
 
 
 ## Solution
