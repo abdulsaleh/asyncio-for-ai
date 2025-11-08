@@ -4,7 +4,7 @@ If you've used the OpenAI or Gemini API, you've probably seen `asyncio` scattere
 
 It matters.
 
-If you're building AI applications, `asyncio`  can keep your code fast and responsive, whether you're making hundreds of API calls, streaming data through a pipeline, or coordinating agent tool calls.
+If you're building AI applications, `asyncio`  can keep your code fast and scalable, whether you're making hundreds of API calls, building data pipelines, or coordinating agent tool calls.
 
 Most `asyncio` tutorials explain *how* it works, focusing on concurrency primitives, event loops, and coroutines. **This guide is about why it matters.**
 
