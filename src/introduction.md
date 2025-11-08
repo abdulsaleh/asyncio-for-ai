@@ -1,12 +1,12 @@
 # Introduction
 
-If you've used the OpenAI or Gemini API, you've probably seen `asyncio` scattered throughout the code examples. Maybe you copied `async/await` without understanding what it does. Maybe you've wondered if it actually matters.
+If you've used the OpenAI or Gemini API, you've probably seen `asyncio` scattered throughout the documentation. Maybe you've copied `async/await` without understanding what it does. Maybe you've wondered if it actually matters.
 
 It matters.
 
-If you're building AI applications, `asyncio`  can keep your code fast and scalable, whether you're making hundreds of API calls, building data pipelines, or coordinating agent tool calls.
+`asyncio` is a library for writing concurrent code in Python. It can help you write faster, more scalable code, whether you're making hundreds of API calls, building data pipelines, or coordinating agent tool calls.
 
-Most `asyncio` tutorials explain *how* it works, focusing on concurrency primitives, event loops, and coroutines. **This guide is about why it matters.**
+Most `asyncio` tutorials explain how it works, focusing on concurrency primitives. **This guide is about why it matters.**
 
 You’ll learn how to use `asyncio` to build faster, more scalable systems.
 
@@ -17,7 +17,7 @@ This guide walks through seven real-world applications of `asyncio`:
 * **[LLM Responses](llm-responses.md)** — Call LLM APIs concurrently without blocking
 * **[Rate Limiters](rate-limiters.md)** — Control API request throughput to stay within rate limits
 * **[Request Batchers](request-batchers.md)** — Batch multiple requests for efficiency
-* **[Data Pipelines](data-pipelines.md)** — Process large datasets with producer-consumer pipelines
+* **[Data Pipelines](data-pipelines.md)** — Process large datasets with producer-consumer queues
 * **[Web Crawlers](web-crawlers.md)** — Efficiently crawl the web and parse web pages
 * **[Tool-Calling Agents](tool-agents.md)** — Build agents that execute tools concurrently
 * **[Parallel Agents](parallel-agents.md)** — Run multiple independent agents simultaneously
