@@ -2,7 +2,7 @@
 
 ## Challenge
 
-When working with LLMs, you often need to make multiple API calls to generate responses for different prompts or handle multiple user requests. Making these calls synchronously means waiting for each response before sending the next request, which is slow and inefficient.
+When working with LLMs, you often need to make multiple API calls to generate responses for different prompts or user requests. Making these calls synchronously means waiting for each response before sending the next request, which is slow and inefficient.
 
 In this challenge, you'll use `asyncio` to send multiple concurrent requests to the Gemini API. You'll start with a basic synchronous implementation, measure its performance, then use `asyncio` to speed up execution.
 
