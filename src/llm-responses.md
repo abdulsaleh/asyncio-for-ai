@@ -91,11 +91,12 @@ Let's call `generate_content()` in a loop:
 
 ```python
 from google import genai
+from google.genai.types import GenerateContentResponse
 
 _NUM_REQUESTS = 5
 
 
-def generate_content(index, client):
+def generate_content(index: int, client: genai.Client) -> GenerateContentResponse:
     response = client.models.generate_content(
         model="gemini-flash-latest", contents="Why do some birds migrate?"
     )
@@ -110,7 +111,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 ```
 
 This takes about 30 seconds to run, including the time to connect to the client.
@@ -135,12 +135,13 @@ Now let's define some coroutines and use `asyncio.gather()` to create and schedu
 ```python
 import asyncio
 from google import genai
+from google.genai.types import GenerateContentResponse
 
 
 _NUM_REQUESTS = 5
 
 
-async def generate_content(index, client):
+async def generate_content(index: int, client: genai.Client) -> GenerateContentResponse:
     response = await client.aio.models.generate_content(
         model="gemini-flash-latest", contents="Why do some birds migrate?"
     )
@@ -156,12 +157,11 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
 ```
 
 We only create the client once as we only need to establish one client connection.
 
-This takes ~10 seconds to run, about three times faster than before. The requests were triggered concurrently, so they don't return in the same order.
+This takes ~10 seconds to run, about three times faster than before. The requests run concurrently and don't return in the same order.
 
 ```bash
 time python script.py
@@ -180,7 +180,7 @@ time python script.py
 
 If we increase `_NUM_REQUESTS = 20` we quickly hit the rate limit.
 
-```
+```bash
 google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 
  'message': 'You exceeded your current quota, please check your plan and billing details....
 ```
