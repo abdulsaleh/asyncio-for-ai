@@ -20,9 +20,9 @@ export GEMINI_API_KEY="YOUR_API_KEY"
 
 In this step, your goal is to make concurrent requests to the Gemini API and hit the rate limits.
 
-Create a new script (`script.py`) that makes 20 concurrent requests to the Gemini API then run your script. See the [LLM Responses](llm-responses.md) chapter to learn how to do this.
+Create a new script (`script.py`) that makes 20 concurrent requests to the Gemini API then run your script. The solution to the [LLM Responses](llm-responses.md) chapter shows how to do this.
 
-You should get a resource exhausted error:
+Confirm you get a resource exhausted error:
 
 ```bash
 python script.py
@@ -71,24 +71,23 @@ async def generate_content(index, client, rate_limiter):
 
 The `acquire()` method should:
 
-1. Remove old requests from `window`. This ensures the window only has requests that were made within the past `interval` seconds.
-2. If the window has fewer than `limit` requests, add the current request time to the `window` and return.
-3. If the limit is reached, calculate how long to wait for the oldest request to age out, then sleep.
-4. Retry the above steps in a `while` loop.
-
-You can use `asyncio.get_running_loop().time()` to get the current monotonic time in seconds.
+1. Use `asyncio.get_running_loop().time()` to get the current monotonic time in seconds.
+2. Remove old requests from `window` to ensure it only has requests that were made within the past `interval` seconds.
+3. If the window has fewer than `limit` requests, the request is allowed. Add the current request time to the `window` and return.
+4. If the limit is reached, calculate how long to wait for the oldest request to age out of the window, then sleep with `asyncio.sleep()`.
+5. Retry the above steps in a `while` loop.
 
 ```admonish hint title="Hint" collapsible=true
-It might also be helpful to use:
-* `asyncio.Lock()` to prevent race conditions when making changes to the `window`.
-* `asyncio.sleep()` to wait when the limit is reached
+You can use `asyncio.Lock()` to prevent race conditions when making changes to the `window`.
 ```
 
 ### Step 3
 
 In this step, your goal is to test your rate limiter.
 
-Update your concurrent code to call `await limiter.acquire()` before making requests and verify you no longer hit the Gemini API rate limits.
+Update your concurrent code to call `await limiter.acquire()` before making requests.
+
+Verify that the rate limiter delays requests to avoid hitting the rate limit Gemini API rate limits.
 
 ### Going Further
 
