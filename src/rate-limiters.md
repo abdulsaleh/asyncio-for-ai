@@ -155,7 +155,7 @@ The key points:
 * `_prune_window()` removes requests outside the sliding window
 * We release the lock before sleeping to allow other tasks to check the rate limit
 
-Note that this solution suffers from the "thundering heard" problem. If multiple tasks are sleeping, all of them will wake up at the same time to try to acquire the lock. Only one request will be allowed, and the remaining tasks will need to sleep again. 
+Note that this solution suffers from the "thundering heard" problem. If multiple tasks are sleeping, all of them will wake up at the same time to try to acquire the lock. Only one request will be allowed, and the remaining tasks will need to sleep again.
 
 One way to avoid this problem is to implement the rate limiter using futures as described in the [Going Further](#going-further) section.
 
@@ -197,8 +197,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
 ```
 
 Now when we run this with 20 requests, it completes successfully without hitting rate limits:
