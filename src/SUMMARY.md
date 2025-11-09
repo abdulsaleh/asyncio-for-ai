@@ -9,7 +9,7 @@
 # Calling Async APIs
 
 - [LLM Responses](llm-responses.md)
-- [Rate Limiters]()
+- [Rate Limiters](rate-limiters.md)
 - [Request Batchers]()
 
 # Producer-Consumer Pipelines
