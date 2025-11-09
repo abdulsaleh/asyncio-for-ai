@@ -16,7 +16,7 @@ It matters.
 
 Most `asyncio` tutorials explain how it works, focusing on concurrency primitives. **This guide is about why it matters.**
 
-You’ll learn how to use `asyncio` to build faster, more scalable systems.
+You’ll learn how to use `asyncio` to build faster, more scalable code.
 
 ## What You'll Learn
 
