@@ -130,7 +130,7 @@ time python script.py
 
 ### Step 3 - Solution
 
-Now let's define some coroutines and use `asyncio.gather()` to create and schedule the tasks concurrently:
+Now let's define some tasks and use `asyncio.gather()` to run them concurrently:
 
 ```python
 import asyncio
@@ -151,8 +151,8 @@ async def generate_content(index: int, client: genai.Client) -> GenerateContentR
 
 async def main():
     client = genai.Client()
-    coroutines = [generate_content(i, client) for i in range(_NUM_REQUESTS)]
-    results = await asyncio.gather(*coroutines)
+    tasks = [generate_content(i, client) for i in range(_NUM_REQUESTS)]
+    results = await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
