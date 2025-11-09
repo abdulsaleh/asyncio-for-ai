@@ -8,7 +8,7 @@ In this challenge, you'll use `asyncio` to send multiple concurrent requests to 
 
 ### Step 0
 
-Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/app/api-keys). We use the Gemini API because it has a generous free tier.
+To get started, get a Gemini API key from [Google AI Studio](https://aistudio.google.com/app/api-keys). We use the Gemini API because it has a generous free tier.
 
 ```bash
 export GEMINI_API_KEY="YOUR_API_KEY"
