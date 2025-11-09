@@ -60,4 +60,56 @@ class RateLimiter:
         pass
 ```
 
+### Step 3
+
+In this step, your goal is to test your rate limiter.
+
+Update your concurrent code to call `await limiter.acquire()` before making requests and verify you no longer hit the Gemini API rate limits. 
+
+
 ## Solution
+
+
+### Step 1 - Solution
+
+
+### Step 2 - Solution 
+
+```python
+import asyncio
+from collections import deque
+from datetime import timedelta
+
+
+class RateLimiter:
+    def __init__(self, limit: int, window: timedelta):
+        self._limit = limit
+        self._window = window.total_seconds()
+        self._history = deque()
+        self._lock = asyncio.Lock()
+
+    def _prune_history(self, now: float) -> None:
+        """Removes requests that have aged out of the time window."""
+        while self._history and now - self._history[0] > self._window:
+            self._history.popleft()
+
+    async def acquire(self) -> None:
+        loop = asyncio.get_event_loop()
+        while True:
+            async with self._lock:
+                now = loop.time()
+                self._prune_history(now)
+
+                if len(self._history) < self._limit:
+                    # We have space in the sliding window to send a request.
+                    self._history.append(now)
+                    return
+
+                # Wait for the oldest request to age out of the window.
+                oldest_request_time = self._history[0]
+                elapsed = now - oldest_request_time
+                remaining = self._window - elapsed
+
+            await asyncio.sleep(remaining)
+
+```
