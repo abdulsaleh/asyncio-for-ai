@@ -34,4 +34,4 @@ If you find this guide helpful, check out my blog at [abdulsaleh.dev](https://ww
 
 ## Source Code
 
-You can find the markdown source code for this guide on [github](https://github.com/abdulsaleh/asyncio-for-ai). This book was compiled in Rust using [mdbook](https://rust-lang.github.io/mdBook/).
+You can find the markdown source code for this guide on [github](https://github.com/abdulsaleh/asyncio-for-ai). It was compiled in Rust using [mdbook](https://rust-lang.github.io/mdBook/).
