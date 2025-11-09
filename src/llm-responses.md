@@ -46,7 +46,7 @@ time python script.py
 
 ### Step 3
 
-In this step, your goal is to use `asyncio` to send these requests concurrently.
+In this step, your goal is to use `asyncio` to send requests concurrently.
 
 Make sure you switch to the async implementation of the Gemini API:
 
