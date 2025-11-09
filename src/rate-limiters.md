@@ -57,7 +57,7 @@ class RateLimiter:
         pass
 ```
 
-The `acquire()` will be awaited until requests can be made under the rate limit:
+`acquire()` will be awaited until requests can be made under the rate limit:
 
 ```python
 async def generate_content(index, client, rate_limiter):
