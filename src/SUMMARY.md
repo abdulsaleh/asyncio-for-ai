@@ -12,7 +12,7 @@
 - [Rate Limiters](rate-limiters.md)
 - [Request Batchers]()
 
-# Producer-Consumer Pipelines
+# Producer-Consumer Queues
 
 - [Data Pipelines]()
 - [Web Crawlers]()

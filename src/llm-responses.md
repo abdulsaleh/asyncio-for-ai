@@ -181,5 +181,6 @@ time python script.py
 If we increase `_NUM_REQUESTS = 20` we quickly hit the rate limit.
 
 ```
-google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details....
+google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 
+ 'message': 'You exceeded your current quota, please check your plan and billing details....
 ```
