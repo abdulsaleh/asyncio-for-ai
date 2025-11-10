@@ -13,8 +13,8 @@
 
 # Producer-Consumer Queues
 
+- [Data Pipelines](data-pipelines.md) 
 - [Request Batchers](request-batchers.md)
-- [Data Pipelines]()
 - [Web Crawlers]()
 
 # Orchestrating Agents

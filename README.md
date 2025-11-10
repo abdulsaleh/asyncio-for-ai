@@ -16,7 +16,7 @@ It matters.
 
 Most `asyncio` tutorials explain how it works. **This guide is about why it matters.**
 
-This is a guide about using `asyncio` to write faster, more scalable code.
+This guide is about using `asyncio` to write faster, more scalable code.
 
 ## What You'll Learn
 
@@ -24,8 +24,8 @@ This guide walks through seven real-world applications of `asyncio`:
 
 - **LLM Responses** — Call LLM APIs concurrently without blocking
 - **Rate Limiters** — Control API request throughput to stay within rate limits
-- **Request Batchers** — Batch multiple requests for efficiency
 - **Data Pipelines** — Process large datasets with producer-consumer pipelines
+- **Request Batchers** — Batch multiple requests for efficiency
 - **Web Crawlers** — Efficiently crawl the web and parse web pages
 - **Tool-Calling Agents** — Build agents that execute tools concurrently
 - **Parallel Agents** — Run multiple independent agents simultaneously

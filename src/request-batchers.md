@@ -2,23 +2,21 @@
 
 ## Challenge
 
-In this challenge, you will build an asynchronous request batcher for the [Gemini Embedding API](https://ai.google.dev/gemini-api/docs/embeddings).
+In this challenge, you will build an async request batcher for the [Gemini Embedding API](https://ai.google.dev/gemini-api/docs/embeddings).
 
-## The Problem
-
-Many applications require batching API calls for efficiency. Consider building a search engine with [vector retrieval](https://www.oracle.com/database/vector-search/). Your service receives a continuous stream of search queries and you need to generate an embedding for each one.
+Many applications require batching API calls for efficiency. Say you're building a search engine with [vector retrieval](https://www.oracle.com/database/vector-search/). Your service will receive a continuous stream of search queries and you need to generate an embedding for each one.
 
 You have two options:
 
 1. **Generate embeddings one at a time** - This is simple but each API call or request to the embedding generation service has some network latency and overhead.
-2. **Batch multiple requests together** - Combine several inputs into a single API call.
+2. **Batch multiple requests together** - Combine several inputs into a single API call and minimize the network overhead.
 
-Your batcher will group requests based on two parameters:
+In this challenge, you will batch requests based on two parameters:
 
-- **`batch_size`** - Maximum number of requests to batch together
+- **`batch_size`** - Maximum number of requests to group together
 - **`timeout`** - Maximum time to wait for a batch to fill
 
-The batcher reads from the request stream and creates a batch when the batch size is reached or when the timeout expires(resulting in a partial batch).
+The batcher continuously reads from the request stream and creates a batch when the batch size is reached or when the timeout expires (resulting in a partial batch).
 
 In real systems, the batch size and timeout are tuned to balance efficiency and latency. Large batches are generally more efficient but waiting to fill them can hurt end-to-end latency.
 

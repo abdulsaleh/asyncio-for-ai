@@ -6,7 +6,9 @@ Model provider APIs have rate limits. It's very easy to exceed these limits if y
 
 In this challenge, you will build a [sliding window](https://medium.com/@avocadi/rate-limiter-sliding-window-log-44acf1b411b9) rate limiter for calling async APIs.
 
-A sliding window rate limiter works by keeping a queue of the most recent `N` requests within a given time window. Before processing a new request, the rate limiter removes any requests that fall outside the time window, then checks if the number of remaining requests is below the limit. If so, the new request is added to the queue and processed. Otherwise, the limiter waits until old requests have aged out of the window.
+A sliding window rate limiter works by keeping a queue of the most recent `N` requests within a given time window.
+
+Before processing a new request, the rate limiter removes any requests that fall outside the time window, then checks if the number of remaining requests is below the limit. If so, the new request is added to the queue and processed. Otherwise, the limiter waits until old requests have aged out of the window.
 
 ### Step 0
 
@@ -89,7 +91,7 @@ Verify that the rate limiter delays requests to avoid hitting the rate limit Gem
 ### Going Further
 
 * Try implementing other rate limiting algorithms like [token bucket](https://en.wikipedia.org/wiki/Token_bucket). This will require keeping track of "tokens" and replenishing them in every iteration at a fixed rate.
-* Implement a sliding window rate limiter that avoids busy-waiting and respects request order. The rate limiter should **not** use `while` loops or `asyncio.sleep()`. When the limit is reached, create a Future with `loop.create_future()` and add it to a waiters queue, then await it. When a request is sent, use `loop.call_later(interval, callback)` to schedule a callback that will wake up the next waiter from the queue. Effectively, every allowed requests reserves a slot that expires in `interval` seconds and unblocks the next waiter in line.
+* Implement a sliding window rate limiter that avoids busy-waiting and respects request order. The rate limiter should **not** use `while` loops or `asyncio.sleep()`. When the limit is reached, create a future with `loop.create_future()` and add it to a waiters queue, then await it. When a request is sent, use `loop.call_later(interval, callback)` to schedule a callback that will wake up the next waiter from the futures queue. Effectively, every allowed requests reserves a slot that expires in `interval` seconds and unblocks the next waiter in line.
 
 ```admonish success title=""
 **Now take some time to attempt the challenge before looking at the solution!**
@@ -103,7 +105,7 @@ Below is a walkthrough of one possible solution. Your implementation may differ,
 
 ### Step 1 - Solution
 
-See the [LLM Responses](llm-responses.md) solution for how to make concurrent requests to the Gemini API. You can use that code but increase `_NUM_REQUESTS = 20` to trigger the rate limit error.
+See the [LLM Responses](llm-responses.md) solution to make concurrent requests to the Gemini API. Increase `_NUM_REQUESTS = 20` to trigger the rate limit error.
 
 ### Step 2 - Solution
 
