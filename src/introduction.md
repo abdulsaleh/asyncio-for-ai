@@ -28,7 +28,7 @@ Try to solve each challenge yourself first. Research shows that [productive fail
 
 ## About me
 
-I'm a software engineer at Google, where I build infrastructure for Gemini fine-tuning and batch inference. I care about making AI development easier, faster, and more accessible.
+Hi! My name is Abdul. I'm a software engineer at Google, where I build infrastructure for Gemini fine-tuning and batch inference. I care about making AI development easier, faster, and more accessible.
 
 If you find this guide helpful, check out my blog at [abdulsaleh.dev](https://www.abdulsaleh.dev/).
 
