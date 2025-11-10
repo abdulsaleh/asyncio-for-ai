@@ -4,15 +4,15 @@
 
 In this challenge, you will build an asynchronous request batcher for the [Gemini Embedding API](https://ai.google.dev/gemini-api/docs/embeddings).
 
-Many applications require batching API calls. For example, say you're building a search engine with [vector retrieval](https://www.oracle.com/database/vector-search/). You need to generate an embedding for each request, and then use that embedding to find relevant search results in a vector database. This setup is also very common for LLM [RAG](https://writer.com/engineering/rag-vector-database/) pipelines.
+Many applications require batching API calls. Imagine you are building a search engine with [vector retrieval](https://www.oracle.com/database/vector-search/). Your search engine will receive a stream of search terms and you need to generate an embedding for each one. 
 
-You'll be receiving a stream of requests. You can generate these embeddings one at a time by calling an external service like the Gemini Embedding API. The problem is that each request has some overhead from network latency. Sending many small requests can also push you over the rate limit.
+One option is to generate these embeddings one at a time using a service (e.g. through the Gemini Embedding API). The problem is that each request has some overhead from network latency. Another option is to combine multiple requests into one batch, then generate the embeddings for multiple inputs in one API call. This way the batcher allows you overcome the network overhead.
 
-A batcher allows you to combine multiple requests into one to minimize this overhead.
-
-The batcher in this challenge has two parameters: `batch_size` and batch `timeout`. As requests arrive in a stream, the batcher populates the batch until either hit the batch size or hit the timeout (in which case we have a partially filled batch).
+The batcher in this challenge has two parameters: `batch_size` and batch `timeout`. The batcher reads from the request stream and populates the batch until either hit the batch size or hit the timeout (in which case we have a partially filled batch).
 
 In real applications, the batch size and timeout are tuned to trade off efficiency for latency. Large batches are more efficient but waiting to fill those batches can hurt end-to-end latency.
+
+
 
 ## Producer-Consumer Queues
 
@@ -82,15 +82,14 @@ The code above produces the following output:
 > Shutting down consumer.
 ```
 
-Note how the producer and consumer steps are **interleaved**. Items are processed as they are added. This is the beauty of concurrent code. 
+Note how the producer and consumer steps are **interleaved**. Items are processed as they are added. This is the beauty of concurrent code.
 
 
 ```admonish warning title="Important"
 The consumer loops forever waiting on new items. You need to cancel the consumer tasks explicitly after the producers are done and the queue is empty.
 ```
 
-
-You can create multiple consumer or producer tasks all using the same queue. This is analogous to creating more "workers" to achieve higher concurrency. 
+You can create multiple consumer or producer tasks all using the same queue. This is analogous to creating more "workers" to achieve higher concurrency.
 
 ```python
 _NUM_PRODUCERS = 4
@@ -110,6 +109,11 @@ async def main():
     await asyncio.gather(*consumers)
 ```
 
+It's also possible to chain multiple consumers and producers together to create a multi-step pipeline. This challenge will have three tasks:
+
+1. A client task that adds inputs to the input queue.
+2. A batcher task that reads from the input queue, creates batches, then adds them to the batch queue.
+3. An embedding worker task that reads from the batch queue and generates the embeddings.
 
 ### Step 0
 
@@ -121,7 +125,7 @@ export GEMINI_API_KEY="YOUR_API_KEY"
 
 ### Step 1
 
-In this step, your goal is to verify you can call the API and generate embeddings.
+In this step, your goal is to verify you can call the API to generate embeddings.
 
 Install the Google [GenAI SDK](https://ai.google.dev/gemini-api/docs/quickstart) and make your first request. Write your code to `script.py`.
 
@@ -130,13 +134,23 @@ pip install -q -U google-genai
 ```
 
 ```python
+import asyncio
+
 from google import genai
 
-client = genai.Client()
+_NUM_REQUESTS = 75
 
-result = client.models.embed_content(
-        model="gemini-embedding-001",
-        contents="What is the meaning of life?")
+
+async def main():
+    client = genai.Client()
+    contents = [f"Input: {i}" for i in range(_NUM_REQUESTS)]
+    result = await client.aio.models.embed_content(
+        model="gemini-embedding-001", contents=contents
+    )
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 ### Step 2
