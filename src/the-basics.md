@@ -58,4 +58,4 @@ It's also possible to use asyncio in combination with multiprocessing if you're 
 
 ### Going Further
 
-There are many other concepts such as using async queues, creating futures, canceling tasks, etc. But you will encounter these throughout the guide. 
+There are many other concepts. But you will encounter them throughout the guide. It will be easier to understand them in context of the future chapters and motivating examples. 

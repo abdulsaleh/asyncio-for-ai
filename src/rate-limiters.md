@@ -72,7 +72,7 @@ async def generate_content(index, client, rate_limiter):
 The `acquire()` method should:
 
 1. Acquire a lock to prevent race conditions when making changes to the `window`. You can create the lock using `asyncio.Lock()`.
-2. Use `asyncio.get_running_loop().time()` to get the current monotonic time in seconds.
+2. Use `asyncio.get_running_loop().time()` to get the current time in seconds.
 3. Remove old requests from `window` to ensure it only has requests that were made within the past `interval` seconds.
 4. If the window has fewer than `limit` requests, the request is allowed. Add the current request time to the `window` and return.
 5. If the limit is reached, calculate how long to wait for the oldest request to age out of the window, then sleep with `asyncio.sleep()`.

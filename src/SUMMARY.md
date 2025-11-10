@@ -10,10 +10,10 @@
 
 - [LLM Responses](llm-responses.md)
 - [Rate Limiters](rate-limiters.md)
-- [Request Batchers]()
 
 # Producer-Consumer Queues
 
+- [Request Batchers]()
 - [Data Pipelines]()
 - [Web Crawlers]()
 
