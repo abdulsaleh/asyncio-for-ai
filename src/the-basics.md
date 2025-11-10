@@ -1,50 +1,61 @@
 # The Basics
 
-The Python docs have a great conceptual overview of asyncio 
 
-https://docs.python.org/3/howto/a-conceptual-overview-of-asyncio.html#a-conceptual-overview-of-asyncio
+The chapter goes over just enough info to get you started with `asyncio`. 
 
-https://docs.python.org/3/howto/a-conceptual-overview-of-asyncio.html#a-conceptual-overview-of-asyncio
-
+The best way to learn and build a mental model of `asyncio` is by using it so this chapter will be light on the details. You can practice building things with `asyncio` in the following chapters and learn as you go along.
 
 
-There are many external guides on `asyncio` but many are confusing and go into too much detail. 
+You can refer to this guide by Alexander Nordin if you want to learn in more detail.
+
+https://github.com/anordin95/a-conceptual-overview-of-asyncio/tree/main
 
 
-`asyncio` let's you run tasks concurrently. 
+### Event Loops and Tasks
 
 
+TODO: Explain what an event loop and task is. 
 
-Best way is to learn by example. 
+Use an example of making an external API call. instead of making them sequentially, you can make them concurrently. 
 
-This guide assumes you have a basic understanding of `asyncio`. 
-
-
-
-For example, let's say you're making requests to an external service or API, like the Gemini API. Each request can 
-
-*concurrently*. 
-
-
-
-
-
-### Concurrency != Parallelism
-
-Note how I said *concurrently*, not in parallel. Technically, there is only one thread and one process. It's just that 
-
+Don't include code yet, just conceptual.
 
 
 
 ### Await, Create, and Gather
 
-To start using `asyncio`, you need to learn about `await`, `create_task`, and `gather`.
-
-
-`await` defines a point where a function can pause and yeild control for other tasks to execute.
+TODO: explain how to use await, create, and gather. Write code for the above example
 
 ```python
 
-
-
 ```
+
+
+
+
+### Synchronization Primitives
+
+There are a few ways to co-ordinate behvior between tasks. The simplest way is locks (to protect a shared resource), but there are other options as well.
+
+E.g. let's say you want to check and update an element in a shared dictionary.
+
+https://docs.python.org/3/library/asyncio-sync.html
+
+
+
+
+
+### When to use asyncio
+
+`asyncio` is best used for I/O bound tasks, not CPU bound tasks. I/O bound tasks include ...
+
+The Python Global Interpreter Lock (GIL) prevents you from doing work in parallel. 
+
+If you're doing CPU heavy work, then you should use multi-processing instead. 
+
+It's also possible to use asyncio in combination with multiprocessing if you're doing work that requires both I/O and CPU processing. For example, you might be making some API calls (I/O) then processing the result (CPU). The [Data Pipelines](data-pipelines.md) chapter covers this in more detail.
+
+
+### Going Further
+
+There are many other concepts such as using async queues, creating futures, canceling tasks, etc. But you will encounter these throughout the guide. 
