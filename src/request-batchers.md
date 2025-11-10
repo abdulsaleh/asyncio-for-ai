@@ -4,21 +4,29 @@
 
 In this challenge, you will build an asynchronous request batcher for the [Gemini Embedding API](https://ai.google.dev/gemini-api/docs/embeddings).
 
-Many applications require batching API calls. Imagine you are building a search engine with [vector retrieval](https://www.oracle.com/database/vector-search/). Your search engine will receive a stream of search terms and you need to generate an embedding for each one. 
+## The Problem
 
-One option is to generate these embeddings one at a time using a service (e.g. through the Gemini Embedding API). The problem is that each request has some overhead from network latency. Another option is to combine multiple requests into one batch, then generate the embeddings for multiple inputs in one API call. This way the batcher allows you overcome the network overhead.
+Many applications require batching API calls for efficiency. Consider building a search engine with [vector retrieval](https://www.oracle.com/database/vector-search/). Your service receives a continuous stream of search queries and you need to generate an embedding for each one.
 
-The batcher in this challenge has two parameters: `batch_size` and batch `timeout`. The batcher reads from the request stream and populates the batch until either hit the batch size or hit the timeout (in which case we have a partially filled batch).
+You have two options:
 
-In real applications, the batch size and timeout are tuned to trade off efficiency for latency. Large batches are more efficient but waiting to fill those batches can hurt end-to-end latency.
+1. **Generate embeddings one at a time** - This is simple but each API call or request to the embedding generation service has some network latency and overhead.
+2. **Batch multiple requests together** - Combine several inputs into a single API call.
 
+Your batcher will group requests based on two parameters:
 
+- **`batch_size`** - Maximum number of requests to batch together
+- **`timeout`** - Maximum time to wait for a batch to fill
+
+The batcher reads from the request stream and creates a batch when the batch size is reached or when the timeout expires(resulting in a partial batch).
+
+In real systems, the batch size and timeout are tuned to balance efficiency and latency. Large batches are generally more efficient but waiting to fill them can hurt end-to-end latency.
 
 ## Producer-Consumer Queues
 
 You will be using a producer-consumer queue in this challenge, which is a key design pattern when writing concurrent code.
 
-**A queue allows different tasks to communicate with each other.** A producer task can add items to a queue, and a consumer task can process these items as they are added. 
+**A queue allows different tasks to communicate with each other.** A producer task can add items to a queue, and a consumer task can process these items as they are added.
 
 Take a look at this example:
 
@@ -83,7 +91,6 @@ The code above produces the following output:
 ```
 
 Note how the producer and consumer steps are **interleaved**. Items are processed as they are added. This is the beauty of concurrent code.
-
 
 ```admonish warning title="Important"
 The consumer loops forever waiting on new items. You need to cancel the consumer tasks explicitly after the producers are done and the queue is empty.
