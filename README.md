@@ -1,4 +1,4 @@
-# AsyncIO for AI Applications
+# asyncio for AI Applications
 
 A practical guide to using Python's `asyncio` for building faster, more scalable LLM and AI applications.
 

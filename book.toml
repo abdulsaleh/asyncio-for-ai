@@ -2,7 +2,7 @@
 authors = ["Abdul Saleh"]
 language = "en"
 src = "src"
-title = "AsyncIO for AI Applications"
+title = "asyncio for AI Applications"
 
 [preprocessor.admonish]
 command = "mdbook-admonish"
