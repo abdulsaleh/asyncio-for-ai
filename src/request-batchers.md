@@ -132,7 +132,7 @@ export GEMINI_API_KEY="YOUR_API_KEY"
 
 ### Step 1
 
-In this step, your goal is to verify you can call the API to generate embeddings.
+In this step, your goal is to verify you can call the Gemini API to generate embeddings.
 
 Install the Google [GenAI SDK](https://ai.google.dev/gemini-api/docs/quickstart) and make your first request. Write your code to `script.py`.
 
@@ -145,7 +145,7 @@ import asyncio
 
 from google import genai
 
-_NUM_REQUESTS = 75
+_NUM_REQUESTS = 10
 
 
 async def main():
