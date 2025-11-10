@@ -8,15 +8,15 @@ A practical guide to using Python's `asyncio` for building faster, more scalable
 
 ## About This Guide
 
-If you've used the OpenAI or Gemini API, you've probably seen `asyncio` scattered throughout the documentation. Maybe you've copied `async/await` without understanding what it does. Maybe you've wondered if it actually matters.
+If you've used the OpenAI or Gemini API, you've probably seen `asyncio` scattered throughout the documentation. You might've copied `async/await` without understanding what it does. You might've wondered if it actually matters.
 
 It matters.
 
-`asyncio` is a library for writing concurrent code in Python. It can help you write faster, more scalable code if you're making API calls, building data pipelines, or orchestrating agents.
+`asyncio` is a library for writing concurrent code in Python. It can help you write more scalable code, especially if you're doing I/O-bound work. Think making API calls over a network, building data pipelines that read from disk, or even orchestrating agent tool calls.
 
-Most `asyncio` tutorials explain how it works, focusing on concurrency primitives. **This guide is about why it matters.**
+Most `asyncio` tutorials explain how it works. **This guide is about why it matters.**
 
-You’ll learn how to use `asyncio` to build faster, more scalable code.
+This is a guide about using `asyncio` to write faster, more scalable code.
 
 ## What You'll Learn
 

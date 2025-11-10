@@ -1,5 +1,13 @@
 # The Basics
 
+The Python docs have a great conceptual overview of asyncio 
+
+https://docs.python.org/3/howto/a-conceptual-overview-of-asyncio.html#a-conceptual-overview-of-asyncio
+
+https://docs.python.org/3/howto/a-conceptual-overview-of-asyncio.html#a-conceptual-overview-of-asyncio
+
+
+
 There are many external guides on `asyncio` but many are confusing and go into too much detail. 
 
 
