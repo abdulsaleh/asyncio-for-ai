@@ -12,7 +12,7 @@ Before processing a new request, the rate limiter removes any requests that fall
 
 ### Step 0
 
-To get started, get a Gemini API key from [Google AI Studio](https://aistudio.google.com/app/api-keys). We use the Gemini API because it has a generous free tier.
+To get started, get a Gemini API key from [Google AI Studio](https://aistudio.google.com/app/api-keys). We use the Gemini API because it has a generous free tier, but any async model API will work.
 
 ```bash
 export GEMINI_API_KEY="YOUR_API_KEY"
@@ -62,7 +62,7 @@ class RateLimiter:
 `acquire()` will be awaited until requests can be made under the rate limit:
 
 ```python
-async def generate_content(index, client, rate_limiter):
+async def generate_content(client, rate_limiter):
     # Waits until we are under the rate limit.
     await rate_limiter.acquire()
     response = await client.aio.models.generate_content(
@@ -86,12 +86,12 @@ In this step, your goal is to test your rate limiter.
 
 Update your concurrent code to call `await limiter.acquire()` before making requests.
 
-Verify that the rate limiter delays requests to avoid hitting the rate limit Gemini API rate limits.
+Verify that the rate limiter delays requests to avoid hitting the Gemini API rate limits.
 
 ### Going Further
 
 * Try implementing other rate limiting algorithms like [token bucket](https://en.wikipedia.org/wiki/Token_bucket). This will require keeping track of "tokens" and replenishing them in every iteration at a fixed rate.
-* Implement a sliding window rate limiter that avoids busy-waiting and respects request order. The rate limiter should **not** use `while` loops or `asyncio.sleep()`. When the limit is reached, create a future with `loop.create_future()` and add it to a waiters queue, then await it. When a request is sent, use `loop.call_later(interval, callback)` to schedule a callback that will wake up the next waiter from the futures queue. Effectively, every allowed requests reserves a slot that expires in `interval` seconds and unblocks the next waiter in line.
+* Implement a sliding window rate limiter that avoids busy-waiting and respects request order. The rate limiter should **not** use `while` loops or `asyncio.sleep()`. When the limit is reached, create a future with `loop.create_future()` and add it to a waiters queue, then await it. When a request is sent, use `loop.call_later(interval, callback)` to schedule a callback that will wake up the next waiter from the futures queue. Effectively, every allowed requests reserves a slot that expires in `interval` seconds when the callback is called and unblocks the next waiter in line.
 
 ```admonish success title=""
 **Now take some time to attempt the challenge before looking at the solution!**
@@ -229,4 +229,4 @@ time python script.py
 > sys     0m0.402s
 ```
 
-The first 10 requests complete immediately, then the rate limiter automatically pauses until enough time has passed to send the next batch. All 20 requests succeed without any resource exhausted errors.
+The first 10 requests are allowed immediately, then the rate limiter automatically pauses until enough time has passed to send the next batch. All 20 requests succeed without any resource exhausted errors.
