@@ -12,7 +12,7 @@ If you've used the OpenAI or Gemini API, you've probably seen `asyncio` scattere
 
 It matters.
 
-`asyncio` is a library for writing concurrent code in Python. It can help you write more scalable code, especially if you're doing I/O-bound work. Think making API calls over a network, building data pipelines that read from disk, or even orchestrating agent tool calls.
+`asyncio` is a library for writing concurrent code in Python. It can help you write faster code, especially if you're doing I/O work. Think making API calls over a network or building data pipelines that read from disk.
 
 Most `asyncio` tutorials explain how it works. **This guide is about why it matters.**
 
