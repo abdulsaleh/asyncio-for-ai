@@ -107,9 +107,9 @@ The consumers loop forever waiting on new items. You need to cancel the consumer
 
 The data pipeline in this challenge will have:
 
-1. **Input reader** tasks which read input prompts from disk then add them to the input queue.
-2. **Content generation** tasks which get prompts from the input queue, call the Gemini API, then add responses to the output queue.
-3. **Output writer** tasks which get the responses from the outputs queue then write them to disk.
+1. An **input reader** task which reads input prompts from disk then adds them to the input queue.
+2. Multiple **content generation** tasks which get prompts from the input queue, call the Gemini API, then add responses to the output queue.
+3. An **output writer** task which gets the responses from the outputs queue then writes them to disk.
 
 ### Step 0
 
@@ -157,14 +157,14 @@ cat inputs/shard_4.txt
 
 In this step, your goal is to implement the input reader coroutine.
 
-The input reader coroutine takes the path to a file, reads the contents, and adds them to the input queue. Each line in the file is a separate prompt.
+The input reader coroutine takes the input directory, reads the files in that directory, then adds the file contents to the input queue. Each line in the file is a separate prompt or input.
 
-Use `aiofiles` for async file operations.
+You can use `aiofiles` for async file operations. The input directory in our case is `inputs/`.
 
 ```python
 import aiofiles
 
-async def read_inputs(path: pathlib.Path, input_queue: asyncio.Queue):
+async def read_inputs(input_dir: pathlib.Path, input_queue: asyncio.Queue):
     pass
 ```
 
@@ -195,16 +195,16 @@ In this step, your goal is to implement the output writer coroutine.
 
 This coroutine does the following:
 
-1. It creates an output file or shard at the output directory.
-2. It gets responses from the output queue, then writes them to the output file.
-3. If the shard has `_SHARD_SIZE` responses, we close out that shard and create a new one.
+1. It creates an output shard file at the output directory.
+2. It gets responses from the output queue, then writes them to the output file until `_SHARD_SIZE` is reached.
+3. After the shard is full, we create a new shard and repeat.
+
+You can use `aiofiles` again for file operations.
 
 ```python
 _SHARD_SIZE = 5
 
-async def write_outputs(
-    output_dir: pathlib.Path, output_queue: asyncio.Queue, shard_lock: asyncio.Lock
-):
+async def write_outputs(output_dir: pathlib.Path, output_queue: asyncio.Queue):
     return 
 ```
 
@@ -218,18 +218,16 @@ In this step, your goal is to create the final consumer-producer pipeline, chain
 
 You need to define:
 
-1. The input queue.
-2. The output queue.
-3. The input paths.
-4. The shard lock.
+1. The input `asyncio.Queue()`.
+2. The output `asyncio.Queue()`.
+
+Set a the `maxsize` for these queues for back pressure, to avoid exploding memory if the workers cannot process tasks fast enough.
 
 You then need to create the tasks or workers:
 
-1. Create one reader task per input file.
+1. Create one input reader task.
 2. Create at least two content generation tasks.
-3. Create at least two writer tasks.
-
-Remember to cancel the consumer tasks after the input queues are empty.
+3. Create on output writer task.
 
 Run your code and verify it works.
 
@@ -237,9 +235,7 @@ Run your code and verify it works.
 
 * This pipeline only has I/O operations so `asyncio` is a natural fit. But what if the pipeline has CPU-heavy operations? For example, what if you need to split and count the words in the model responses? You can try using `loop.run_in_executor(executor, operation)` and `ProcessPoolExecutor` to offload CPU heavy work to a separate process and avoid blocking the event loop.
 
-* In the this challenge, we created a different reader task for each file. This works when the number of files is small, but what if we have more files? Creating too many reader tasks can be inefficient. One option is to add the file names to a queue and then update the reader task to process the file names one-by-one from that queue. That way we can have a small number of reader tasks processing a large number of files.
-
-* Above we used the number of files in the output directory to get the shard index, `index = len(list(output_dir.glob("shard_*.txt")))`. This can be slow if we have a large number of shards. Another option is to keep a shard counter protected by a lock (e.g., `shard_counter = {'index': 0})`). We can pass this counter to the writers to increment and create the correct shard id.
+* In the this challenge, we created a single reader and writer task since disk I/O is fast and the API calls were the bottleneck. However, if our reads / writes were slower (e.g. to a database), we can extend this pattern to have multiple concurrent reader/writer tasks.
 
 ```admonish success title=""
 **Now take some time to attempt the challenge before looking at the solution!**
@@ -262,23 +258,23 @@ from google import genai
 
 _INPUTS_PATH = "inputs/"
 _OUTPUTS_PATH = "outputs/"
-_GENERATE_TASKS = 2
-_WRITER_TASKS = 3
+_GENERATE_TASKS = 5
 _SHARD_SIZE = 5
+_QUEUE_SIZE = 5
+
 ```
 
 ### Step 2 - Solution
 
 ```python
-async def read_inputs(path: pathlib.Path, input_queue: asyncio.Queue):
-    async with aiofiles.open(path) as f:
-        async for prompt in f:
-            if not prompt:
-                continue
-            await input_queue.put(prompt)
-            print(f"Enqueued prompt {prompt.strip()} from {path}")
-            # Simulate I/O delay. Yield control to event loop.
-            await asyncio.sleep(1)
+async def read_inputs(input_dir: pathlib.Path, input_queue: asyncio.Queue):
+    for path in input_dir.iterdir():
+        async with aiofiles.open(path) as f:
+            async for prompt in f:
+                if not prompt:
+                    continue
+                await input_queue.put(prompt)
+                print(f"Enqueued prompt {prompt.strip()} from {path}")
 ```
 
 ### Step 3 - Solution
@@ -307,8 +303,8 @@ async def generate_content(
 ):
     try:
         while True:
-            # Wait between requests to avoid rate limiting.
-            await asyncio.sleep(0.15)
+            # Optionally wait between requests to avoid rate limiting.
+            # await asyncio.sleep(0.15)
             await generate_with_retry(client, input_queue, output_queue)
     except asyncio.CancelledError:
         print("Shutting down content generation task...")
@@ -317,32 +313,20 @@ async def generate_content(
 ### Step 4 - Solution
 
 ```python
-async def create_shard(
-    output_dir: pathlib.Path, shard_lock: asyncio.Lock
-) -> pathlib.Path:
-    async with shard_lock:
-        index = len(list(output_dir.glob()))
-        path = output_dir / f"shard_{index}.txt"
-        path.touch(exist_ok=False)
-    return path
-
-
-async def write_outputs(
-    output_dir: pathlib.Path, output_queue: asyncio.Queue, shard_lock: asyncio.Lock
-):
-    # Create parent directories if they don't exist
-    output_dir.mkdir(parents=True, exist_ok=True)
+async def write_outputs(output_dir: pathlib.Path, output_queue: asyncio.Queue):
     try:
+        # Create parent directories if they don't exist
+        output_dir.mkdir(parents=True, exist_ok=True)
+        shard_index = 0
         while True:
-            # Create a new shard file at the next available index
-            path = await create_shard(output_dir, shard_lock)
+            path = output_dir / f"shard_{shard_index}.txt"
             async with aiofiles.open(path, "w") as f:
                 for _ in range(_SHARD_SIZE):
                     prompt, response = await output_queue.get()
                     await f.write(f"{prompt} - {response} \n")
                     print(f"Wrote {prompt.strip()} response to {path}")
                     output_queue.task_done()
-
+            shard_index += 1
     except asyncio.CancelledError:
         print("Shutting down writer...")
 ```
@@ -352,28 +336,21 @@ async def write_outputs(
 ```python
 async def main():
     client = genai.Client()
-    input_queue = asyncio.Queue()
-    output_queue = asyncio.Queue()
-    shard_lock = asyncio.Lock()
+    input_queue = asyncio.Queue(maxsize=_QUEUE_SIZE)
+    output_queue = asyncio.Queue(maxsize=_QUEUE_SIZE)
 
     input_dir = pathlib.Path(_INPUTS_PATH)
     output_dir = pathlib.Path(_OUTPUTS_PATH)
-    input_paths = [pathlib.Path(p) for p in input_dir.iterdir()]
 
-    readers_tasks = [
-        asyncio.create_task(read_inputs(p, input_queue)) for p in input_paths
-    ]
+    reader_task = asyncio.create_task(read_inputs(input_dir, input_queue))
     generate_tasks = [
         asyncio.create_task(generate_content(client, input_queue, output_queue))
         for _ in range(_GENERATE_TASKS)
     ]
-    writer_tasks = [
-        asyncio.create_task(write_outputs(output_dir, output_queue, shard_lock))
-        for _ in range(_WRITER_TASKS)
-    ]
+    writer_task = asyncio.create_task(write_outputs(output_dir, output_queue))
 
     # Wait until all the inputs are read and processed
-    await asyncio.gather(*readers_tasks)
+    await reader_task
     await input_queue.join()
 
     # Cancel the generate tasks since all inputs have been processed.
@@ -383,9 +360,8 @@ async def main():
 
     # Wait until all outputs are written.
     await output_queue.join()
-    for task in writer_tasks:
-        task.cancel()
-    await asyncio.gather(*writer_tasks)
+    writer_task.cancel()
+    await writer_task
 
 
 asyncio.run(main())
@@ -394,28 +370,34 @@ asyncio.run(main())
 Now let's run this and check the output:
 
 ```bash
-> Enqueued prompt What is two times 15? from inputs/shard_5.txt
-> Enqueued prompt What is two times 3? from inputs/shard_1.txt
-> ...
-> Generated content for prompt: What is two times 6?
-> Enqueued prompt What is two times 28? from inputs/shard_9.txt
-> Enqueued prompt What is two times 7? from inputs/shard_2.txt
-> Generated content for prompt: What is two times 27?
-> Wrote What is two times 27? response to outputs/shard_1.txt
-> Generated content for prompt: What is two times 21?
-> Wrote What is two times 21? response to outputs/shard_2.txt
-> Generated content for prompt: What is two times 18?
-> Wrote What is two times 18? response to outputs/shard_0.txt
-> Enqueued prompt What is two times 11? from inputs/shard_3.txt
-> ...
-> Wrote What is two times 11? response to outputs/shard_4.txt
-> Generated content for prompt: What is two times 2?
-> Shutting down content generation task...
-> Shutting down content generation task...
-> Wrote What is two times 2? response to outputs/shard_5.txt
-> Shutting down writer...
-> Shutting down writer...
-> Shutting down writer...
+Enqueued prompt What is two times 27? from inputs/shard_9.txt
+Enqueued prompt What is two times 28? from inputs/shard_9.txt
+Enqueued prompt What is two times 29? from inputs/shard_9.txt
+Enqueued prompt What is two times 6? from inputs/shard_2.txt
+Generated content for prompt: What is two times 28?
+Enqueued prompt What is two times 20? from inputs/shard_6.txt
+Wrote What is two times 28? response to outputs/shard_0.txt
+Generated content for prompt: What is two times 27?
+Enqueued prompt What is two times 24? from inputs/shard_8.txt
+Wrote What is two times 27? response to outputs/shard_0.txt
+...
+Generated content for prompt: What is two times 0?
+Wrote What is two times 0? response to outputs/shard_0.txt
+content.parts accessor to get the full model response.
+Generated content for prompt: What is two times 13?
+Wrote What is two times 13? response to outputs/shard_0.txt
+Generated content for prompt: What is two times 1?
+Wrote What is two times 1? response to outputs/shard_0.txt
+Generated content for prompt: What is two times 2?
+Shutting down content generation task...
+Shutting down content generation task...
+Shutting down content generation task...
+Wrote What is two times 2? response to outputs/shard_0.txt
+Shutting down writer...
 ```
 
 Note how the file reads, API calls, and file writes are all interleaved. As the producers (file reader, content generator) add items to the producer queue, the consumers (content generator, writer) get items from the queue and process them concurrently.
+
+**This is the key benefit**: While the API is processing prompt #1, we can be reading prompt #2 from disk and writing the response for prompt #0. Without concurrency, each stage would wait idle for the others to complete.
+
+Running this script with one generate task takes ~20s, while running it with 5 generate tasks takes ~6s.
