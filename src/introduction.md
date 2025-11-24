@@ -12,15 +12,14 @@ This guide is about using `asyncio` to write faster, more scalable code.
 
 ## How this guide is structured
 
-This guide walks through seven real-world applications of `asyncio`:
+This guide walks through six real-world applications of `asyncio`:
 
 * **[LLM Responses](llm-responses.md)** — Call LLM APIs concurrently without blocking
 * **[Rate Limiters](rate-limiters.md)** — Control API request throughput to stay within rate limits
-* **[Data Pipelines]()** — Process large datasets with producer-consumer pipelines
-* **[Request Batchers]()** — Batch API requests for efficiency
-* **[Web Crawlers]()** — Efficiently crawl the web and parse web pages
-* **[Tool-Calling Agents]()** — Build agents that execute tools concurrently
-* **[Parallel Agents]()** — Run your agents in parallel
+* **Data Pipelines** — Process large datasets with producer-consumer pipelines
+* **Request Batchers** — Batch API requests for efficiency
+* **Web Crawlers** — Efficiently crawl the web and parse web pages
+* **Tool-Calling Agents** — Build agents that execute tools concurrently
 
 Each section follows a challenge-solution format inspired by John Crickett's [Coding Challenges](https://codingchallenges.substack.com/).
 
@@ -28,7 +27,7 @@ Try to solve each challenge yourself first. Research shows that [productive fail
 
 ## About me
 
-Hi! My name is Abdul. I'm a software engineer at Google, where I build infrastructure for Gemini fine-tuning and batch inference. I care about making AI development easier, faster, and more accessible.
+Hi! I'm Abdul. I build infrastructure for Gemini fine-tuning and batch inference at Google. I care about making AI development easier, faster, and more accessible.
 
 If you find this guide helpful, check out my blog at [abdulsaleh.dev](https://www.abdulsaleh.dev/).
 

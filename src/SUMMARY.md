@@ -20,4 +20,3 @@
 # Orchestrating Agents
 
 - [Tool Calling Agents]()
-- [Parallel Agents]()
