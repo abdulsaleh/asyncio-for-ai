@@ -9,8 +9,3 @@ Each chapter has a "Before you start" section that lists the relevant `asyncio` 
 If you want to understand how `asyncio` works first, read [Alexander Nordin's conceptual overview](https://github.com/anordin95/a-conceptual-overview-of-asyncio/tree/main).
 
 For syntax and API reference, see the [official asyncio documentation](https://docs.python.org/3/library/asyncio.html).
-
----
----
-
-Start with [Async LLM Responses](llm-responses.md).
