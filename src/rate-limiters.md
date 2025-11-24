@@ -2,7 +2,7 @@
 
 ## Challenge
 
-Model provider APIs have rate limits. It's very easy to exceed these limits if you're making requests concurrently without throttling.
+Model provider APIs have strict rate limits. It's very easy to exceed these limits if you're making requests concurrently without throttling.
 
 In this challenge, you will build a [sliding window](https://medium.com/@avocadi/rate-limiter-sliding-window-log-44acf1b411b9) rate limiter for calling async APIs.
 
@@ -91,7 +91,7 @@ Verify that the rate limiter delays requests to avoid hitting the Gemini API rat
 ### Going Further
 
 * Try implementing other rate limiting algorithms like [token bucket](https://en.wikipedia.org/wiki/Token_bucket). This will require keeping track of "tokens" and replenishing them in every iteration at a fixed rate.
-* Implement a sliding window rate limiter that avoids busy-waiting and respects request order. The rate limiter should **not** use `while` loops or `asyncio.sleep()`. When the limit is reached, create a future with `loop.create_future()` and add it to a waiters queue, then await it. When a request is sent, use `loop.call_later(interval, callback)` to schedule a callback that will wake up the next waiter from the futures queue. Effectively, every allowed requests reserves a slot that expires in `interval` seconds when the callback is called and unblocks the next waiter in line.
+* Implement a sliding window rate limiter that avoids busy-waiting and respects request order. The rate limiter should **not** use `while` loops or `asyncio.sleep()`. When the limit is reached, create a future with `loop.create_future()` and add it to a waiters queue, then await it. When a request is sent, use `loop.call_later(interval, callback)` to schedule a callback that will wake up the next waiter from the futures queue. Effectively, every allowed requests reserves a slot that expires in `interval` seconds when the callback is called and unblocks the next waiter in line and lets the next request through.
 
 ```admonish success title=""
 **Now take some time to attempt the challenge before looking at the solution!**
@@ -147,13 +147,13 @@ class RateLimiter:
             await asyncio.sleep(remaining)
 ```
 
-The key points:
+Note how:
 
 * `_lock` prevents race conditions when multiple tasks call `acquire()` simultaneously
 * `_prune_window()` removes requests outside the sliding window
 * We release the lock before sleeping to allow other tasks to check the rate limit
 
-Note that this solution suffers from the "thundering heard" problem. If multiple tasks are sleeping, all of them will wake up at the same time to try to acquire the lock. Only one request will be allowed, and the remaining tasks will need to sleep again.
+This solution suffers from the "thundering heard" problem. If multiple tasks are sleeping, all of them will wake up at the same time to try to acquire the lock. Only one request will be allowed, and the remaining tasks will need to sleep again.
 
 One way to avoid this problem is to implement the rate limiter using futures as described in the [Going Further](#going-further) section.
 
