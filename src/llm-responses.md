@@ -2,9 +2,9 @@
 
 ## Challenge
 
-When working with LLMs, you often need to make API calls to generate responses for multiple prompts or user requests. Making these calls synchronously means waiting for each response before sending the next request, which is slow and inefficient.
+When working with LLMs, you often need to make API calls to generate responses for multiple prompts or user requests. Making these calls synchronously means waiting for each response before sending the next, which is slow and inefficient.
 
-In this challenge, you'll use `asyncio` to send concurrent requests to the Gemini API. You'll start with a basic synchronous implementation, measure its performance, then use `asyncio` to speed up execution.
+In this challenge, you'll use `asyncio` to send concurrent requests to the Gemini API. You'll start with a basic synchronous script, measure its performance, then use `asyncio` to write a faster async solution.
 
 ### Step 0
 
@@ -46,15 +46,15 @@ time python script.py
 
 ### Step 3
 
-In this step, your goal is to use `asyncio` to send the 5 requests concurrently. You need to use `asyncio.gather()`.
-
-Make sure you switch to the async implementation of the Gemini API:
+In this step, your goal is to make 5 concurrent requests using the async Gemini API:
 
 ```python
 response = await client.aio.models.generate_content(
     model="gemini-flash-latest", contents="Why do some birds migrate?"
 )
 ```
+
+Use `await asyncio.gather()` to wait on the responses.
 
 Now run and time your code. How long does it take?
 
@@ -176,3 +176,5 @@ If we increase `_NUM_REQUESTS = 20` we quickly hit the rate limit.
 google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 
  'message': 'You exceeded your current quota, please check your plan and billing details....
 ```
+
+See the [Rate Limiters](rate-limiters.md) chapter to build your own rate limiter and avoid hitting rate limits.
