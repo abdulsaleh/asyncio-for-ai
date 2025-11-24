@@ -2,11 +2,11 @@
 
 AI applications spend a lot of time waiting.
 
-They wait on model responses, database queries, or even agent tool calls. Most AI applications are IO-bound. They wait on external services or disk reads, not CPU cycles.
+They wait on model responses, database queries, or even agent tool calls. Most AI applications are IO-bound. They wait on external services, not CPU cycles.
 
-`asyncio` is a library for writing concurrent code with `async/await` syntax in Python. It can help you write faster, more scalable code by doing IO work concurrently. For example, instead of sending one model request at a time, you can send many at once.
+`asyncio` is a library for writing faster, more scalable IO-bound code in Python. It uses `async/await` syntax to run concurrent code, allowing you to send hundreds of model requests at once instead of one at a time.
 
-Making concurrent API calls is the most common use of `asyncio`, but you can build way cooler things like rate limiters, producer-consumer pipelines, or web crawlers. This is a guide about building those cool things.
+Making concurrent API calls is the most common usecase of `asyncio`, but you can also use it to build way cooler things like rate limiters, producer-consumer pipelines, or web crawlers. This is a guide about building those cool things.
 
 ## How this guide is structured
 
