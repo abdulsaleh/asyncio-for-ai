@@ -8,6 +8,15 @@ Reading/writing files and sending API requests are I/O operations so `asyncio` i
 
 You can also extend this pipeline to do CPU-bound work. See the [Going Further](#going-further) section if you want to learn how.
 
+## Before you start
+
+The following functions or classes are relevant for this chapter. It might be helpful to read their docs before you start:
+
+* `asyncio.gather()` for waiting on running tasks.
+* `asyncio.Queue()` for creating async queues.
+* `task.cancel()` for canceling running tasks.
+* `aiofiles.open()` for async file operations.
+
 ## Producer-Consumer Queues
 
 You will be using a producer-consumer queue in this challenge, which is a key design pattern for concurrent code.
@@ -16,10 +25,10 @@ You will be using a producer-consumer queue in this challenge, which is a key de
 
 Queues are useful when you have:
 
-1. **Different-speed pipeline stages** - API calls are slow, but file I/O is fast. We can keep reading files while the API calls are inflight.
-2. **Multiple workers per stage** - 5 workers can process API calls concurrently, finishing 5x faster.
+1. **Different pipeline stages** - API calls are slow, but file I/O is fast. We can keep reading/enqueuing files while the API calls are inflight.
+2. **Multiple workers per stage** - Multiple workers can process API calls concurrently, finishing faster.
 3. **Variable processing times** - Some API calls return in 100ms, others take 2s. Queues keep all workers busy.
-4. **Backpressure control** - Setting `maxsize` prevents memory overflow if producers are faster than consumers.
+4. **Backpressure control** - Limiting the queue sizes prevents memory overflow if producers are faster than consumers.
 
 Take a look at this example:
 

@@ -10,6 +10,16 @@ A sliding window rate limiter works by keeping a queue of the most recent `N` re
 
 Before processing a new request, the rate limiter removes any requests that fall outside the time window, then checks if the number of remaining requests is below the limit. If so, the new request is added to the queue and processed. Otherwise, the limiter waits until old requests have aged out of the window.
 
+## Before you start
+
+The following functions or classes are relevant for this chapter. It might be helpful to read their docs before you start:
+
+* `asyncio.gather()` for waiting on running tasks.
+* `asyncio.get_running_loop().time()` for getting the current time in a coroutine.
+* `asyncio.Lock()` for protecting shared resources.
+* `asyncio.sleep()` for waiting in a coroutine.
+
+
 ### Step 0
 
 To get started, get a Gemini API key from [Google AI Studio](https://aistudio.google.com/app/api-keys). We use the Gemini API because it has a generous free tier, but any async model API will work.

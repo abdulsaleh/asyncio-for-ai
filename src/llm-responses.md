@@ -6,6 +6,13 @@ When working with LLMs, you often need to make API calls to generate responses f
 
 In this challenge, you'll use `asyncio` to send concurrent requests to the Gemini API. You'll start with a basic synchronous script, measure its performance, then use `asyncio` to write a faster async solution.
 
+## Before you start
+
+The following functions or classes are relevant for this chapter. It might be helpful to read their docs before you start:
+
+* `asyncio.gather()` for waiting on running tasks.
+
+
 ### Step 0
 
 To get started, get a Gemini API key from [Google AI Studio](https://aistudio.google.com/app/api-keys). We use the Gemini API because it has a generous free tier, but any async model API will work.
