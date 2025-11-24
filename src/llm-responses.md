@@ -38,7 +38,7 @@ response = client.models.generate_content(
 
 In this step, your goal is send multiple requests to the Gemini API and time your code.
 
-Run `generate_content()` in a loop with 5 iterations. Time your script. How long does it take to make 5 requests?
+Run `generate_content()` in a loop with five iterations. Time your script. How long does it take to make five requests?
 
 ```bash
 time python script.py
@@ -46,7 +46,7 @@ time python script.py
 
 ### Step 3
 
-In this step, your goal is to use `asyncio` to send requests concurrently.
+In this step, your goal is to use `asyncio` to send the 5 requests concurrently. You need to use `asyncio.gather()`.
 
 Make sure you switch to the async implementation of the Gemini API:
 
@@ -57,10 +57,6 @@ response = await client.aio.models.generate_content(
 ```
 
 Now run and time your code. How long does it take?
-
-```admonish hint title="Hint" collapsible=true
-You need to use `asyncio.gather()`. Take a look at the basics section.
-```
 
 ### Step 4
 
