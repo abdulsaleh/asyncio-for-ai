@@ -249,7 +249,7 @@ Run your code and verify reading, generation, and writing are all interleaved. V
 
 ## Going Further
 
-* This pipeline only has I/O operations so `asyncio` is a natural fit. But what if the pipeline has CPU-heavy operations? For example, what if you need to split and count the words in the model responses? You can try using `loop.run_in_executor(executor, operation)` and `ProcessPoolExecutor` to offload CPU heavy work to a separate process and avoid blocking the event loop.
+* This pipeline only has I/O operations so `asyncio` works well. But what if the pipeline has CPU-heavy operations? For example, what if you need to split and count the words in the model responses? You can try using `loop.run_in_executor(executor, operation)` and `ProcessPoolExecutor` to offload CPU heavy work to a separate process and avoid blocking the event loop.
 
 * In this challenge, we created a single reader and writer task since disk I/O is fast and the API calls were the bottleneck. However, if our reads/writes were slower (e.g., to a remote database or cloud storage), we could extend this pattern to have multiple concurrent reader/writer tasks.
 
