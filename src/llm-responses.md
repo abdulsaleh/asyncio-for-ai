@@ -65,7 +65,7 @@ What happens if you increase the number of requests? At what point do you hit ra
 ### Going Further
 
 * See the [Rate Limiters](rate-limiters.md) chapter to build your own rate limiter and avoid hitting rate limits.
-* Creating `asyncio` tasks does *not* scale infinitely. If you create tens of thousands of tasks you can run out of memory or see worse performance due to scheduling overhead. If you have a large number of requests, it's better to use a producer-consumer queue and a fixed number of consumer tasks. See the [Data Pipelines](data-pipelines.md) to learn how to do this.
+* Creating `asyncio` tasks does *not* scale indefinitely. If you create tens of thousands of tasks you can run out of memory or see worse performance due to scheduling overhead. If you have a large number of requests, it's better to use a producer-consumer queue and a fixed number of consumer tasks. See the [Data Pipelines](data-pipelines.md) to learn how to do this.
 
 ```admonish success title=""
 **Now take some time to attempt the challenge before looking at the solution!**

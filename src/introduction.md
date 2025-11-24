@@ -16,7 +16,7 @@ This guide walks through six real-world applications of `asyncio`:
 
 * **[LLM Responses](llm-responses.md)** — Call LLM APIs concurrently without blocking
 * **[Rate Limiters](rate-limiters.md)** — Control API request throughput to stay within rate limits
-* **Data Pipelines** — Process large datasets with producer-consumer pipelines
+* **[Data Pipelines](data-pipelines.md)** — Process large datasets with producer-consumer pipelines
 * **Request Batchers** — Batch API requests for efficiency
 * **Web Crawlers** — Efficiently crawl the web and parse web pages
 * **Tool-Calling Agents** — Build agents that execute tools concurrently

@@ -22,7 +22,7 @@ export GEMINI_API_KEY="YOUR_API_KEY"
 
 In this step, your goal is to make concurrent requests to the Gemini API and hit the rate limits.
 
-Create a new script (`script.py`) that makes 20 concurrent requests to the Gemini API then run your script. The solution to the [LLM Responses](llm-responses.md) chapter shows how to do this.
+Create a new script (`script.py`) that makes 20 concurrent requests to the Gemini API then run your script. The solution to the [LLM Responses](llm-responses.md) chapter explains how to do this.
 
 Confirm you get a resource exhausted error:
 
