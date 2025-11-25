@@ -4,7 +4,7 @@
 
 In this challenge, you will build an async request batcher for the [Gemini Embedding API](https://ai.google.dev/gemini-api/docs/embeddings).
 
-Many applications require batching API calls for efficiency. Say you're building a search engine with [vector retrieval](https://www.oracle.com/database/vector-search/). Your service will receive a continuous stream of search queries and you need to generate an embedding for each one.
+Many applications require batching API calls for efficiency. Say you're building an application such as a search engine that requires generating embeddings for a stream of queries.
 
 You have two options:
 
@@ -13,112 +13,23 @@ You have two options:
 
 In this challenge, you will batch requests based on two parameters:
 
-- **`batch_size`** - Maximum number of requests to group together
+- **`batch_size`** - Maximum number of requests in a batch
 - **`timeout`** - Maximum time to wait for a batch to fill
 
-The batcher continuously reads from the request stream and creates a batch when the batch size is reached or when the timeout expires (resulting in a partial batch).
+The batcher continuously reads from an input queue and creates a batch when the batch size is reached or when the timeout expires (resulting in a partial batch).
 
+```admonish info
 In real systems, the batch size and timeout are tuned to balance efficiency and latency. Large batches are generally more efficient but waiting to fill them can hurt end-to-end latency.
-
-## Producer-Consumer Queues
-
-You will be using a producer-consumer queue in this challenge, which is a key design pattern when writing concurrent code.
-
-**A queue allows different tasks to communicate with each other.** A producer task can add items to a queue, and a consumer task can process these items as they are added.
-
-Take a look at this example:
-
-```python
-import asyncio
-
-_NUM_ITEMS = 3
-
-
-async def producer(queue: asyncio.Queue):
-    for i in range(_NUM_ITEMS):
-        print(f"Adding item {i}")
-        await queue.put(i)
-        # Pass control back to the event loop so the consumer can run.
-        await asyncio.sleep(0.1)
-
-
-async def consumer(queue: asyncio.Queue):
-    try:
-        while True:
-            item = await queue.get()
-            print(f"Processing the item {item}")
-            queue.task_done()
-
-    except asyncio.CancelledError:
-        print("Shutting down consumer.")
-
-
-async def main():
-    queue = asyncio.Queue()
-
-    consumer_task = asyncio.create_task(consumer(queue))
-    producer_task = asyncio.create_task(producer(queue))
-
-    # Wait until all the producers are done.
-    # This ensures all items have been added to the queue.
-    await producer_task
-
-    # Wait until the queue is empty.
-    # .put() and .task_done() must be called an equal number of times.
-    await queue.join()
-
-    # Cancel the consumers since the queue is empty.
-    consumer_task.cancel()
-    await consumer_task
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
 ```
 
-The code above produces the following output:
+We will be using producer-consumer queues in the challenge. See the [Data Pipelines](data-pipelines.md) chapter to learn more about this pattern.
 
-```bash
-> Adding item 0
-> Processing the item 0
-> Adding item 1
-> Processing the item 1
-> Adding item 2
-> Processing the item 2
-> Shutting down consumer.
-```
+In this challenge, you will implement four async functions or coroutines:
 
-Note how the producer and consumer steps are **interleaved**. Items are processed as they are added. This is the beauty of concurrent code.
-
-```admonish warning title="Important"
-The consumer loops forever waiting on new items. You need to cancel the consumer tasks explicitly after the producers are done and the queue is empty.
-```
-
-You can create multiple consumer or producer tasks all using the same queue. This is analogous to creating more "workers" to achieve higher concurrency.
-
-```python
-_NUM_PRODUCERS = 4
-_NUM_CONSUMERS = 2
-
-async def main():
-    queue = asyncio.Queue()
-
-    consumers = [asyncio.create_task(consumer(queue)) for _ in range(_NUM_CONSUMERS)]
-    producers = [asyncio.create_task(producer(queue)) for _ in range(_NUM_PRODUCERS)]
-
-    await asyncio.gather(*producers)
-    await queue.join()
-
-    for c in consumers:
-        c.cancel()
-    await asyncio.gather(*consumers)
-```
-
-It's also possible to chain multiple consumers and producers together to create a multi-step pipeline. This challenge will have three tasks:
-
-1. A client task that adds inputs to the input queue.
-2. A batcher task that reads from the input queue, creates batches, then adds them to the batch queue.
-3. An embedding worker task that reads from the batch queue and generates the embeddings.
+1. An input reader that adds inputs to the input queue.
+2. A batcher that reads from the input queue, creates batches, then adds them to the batch queue.
+3. An embedding generator that reads from the batch queue, calls the Gemini Embedding API, then adds the output to the output queue.
+4. An output logger that reads from the outputs queue and logs the outputs.
 
 ### Step 0
 
@@ -153,23 +64,6 @@ async def main():
         model="gemini-embedding-001", contents=contents
     )
 
-
 if __name__ == "__main__":
     asyncio.run(main())
 ```
-
-### Step 2
-
-In this step, your goal is to implement the asynchronous request batcher.
-
-### Step 3
-
-In this step, your goal is to implement the embedding worker.
-
-This worker calls the Gemini Embedding API to generate embeddings.
-
-### Step 4
-
-In this step, your goal is to build a producer-consumer pipeline
-
-## Solution

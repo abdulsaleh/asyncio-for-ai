@@ -19,7 +19,6 @@ The following functions or classes are relevant for this chapter. It might be he
 * `asyncio.Lock()` for protecting shared resources.
 * `asyncio.sleep()` for waiting in a coroutine.
 
-
 ### Step 0
 
 To get started, get a Gemini API key from [Google AI Studio](https://aistudio.google.com/app/api-keys). We use the Gemini API because it has a generous free tier, but any async model API will work.
