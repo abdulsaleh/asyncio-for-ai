@@ -25,10 +25,10 @@ You will be using a producer-consumer queue in this challenge, which is a key de
 
 Queues are useful when you have:
 
-1. **Different pipeline stages** - API calls are slow, but file I/O is fast. We can keep reading/enqueuing files while the API calls are inflight.
-2. **Multiple workers per stage** - Multiple workers can process API calls concurrently, finishing faster.
-3. **Variable processing times** - Some API calls return in 100ms, others take 2s. Queues keep all workers busy.
-4. **Backpressure control** - Limiting the queue sizes prevents memory overflow if producers are faster than consumers.
+1. **Different pipeline stages**: You can interleave reading/writing files while making API calls. You're not stuck waiting on any one stage.
+2. **Streaming data**: You can add data to the input queue and it will get processed as it is added. 
+3. **Multiple workers per stage**: You can have multiple tasks working concurrently which is faster (see the [LLM Responses](llm-responses.md) chapter.)
+4. **Backpressure control**: Limiting the queue sizes prevents memory overflow if producers are faster than consumers.
 
 Take a look at this example:
 
