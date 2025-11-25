@@ -26,7 +26,7 @@ You will be using a producer-consumer queue in this challenge, which is a key de
 Queues are useful when you have:
 
 1. **Different pipeline stages**: You can interleave reading/writing files while making API calls. You're not stuck waiting on any one stage.
-2. **Streaming data**: You can add data to the input queue and it will get processed as it is added. 
+2. **Streaming data**: You can add data to the input queue and it will get processed as it is added.
 3. **Multiple workers per stage**: You can have multiple tasks working concurrently which is faster (see the [LLM Responses](llm-responses.md) chapter.)
 4. **Backpressure control**: Limiting the queue sizes prevents memory overflow if producers are faster than consumers.
 
@@ -118,6 +118,8 @@ async def main():
 
 ```admonish warning title="Important"
 The consumers loop forever waiting on new items. You need to cancel the consumers explicitly after the producers are done and the queue is empty.
+
+Another option is to pass a "poison pill" or a None sentinel to notify the consumer to shut down instead of cancelling it explicitly. 
 ```
 
 ---
@@ -192,13 +194,15 @@ async def read_inputs(input_dir: pathlib.Path, input_queue: asyncio.Queue):
 
 In this step, your goal is to implement the content generation coroutine.
 
-This coroutine reads prompts from the input queue, makes requests to the Gemini API, then writes the response text to the output queue.
+This coroutine reads prompts from the input queue, makes requests to the Gemini API, then writes the response text to the output queue. The output queue should hold a (input, response) tuple.
 
 See the solution to the [LLM Responses](llm-responses.md) chapter to see how to call the async Gemini API.
 
 ```python
 async def generate_content(
-    client: genai.Client, input_queue: asyncio.Queue, output_queue: asyncio.Queue
+    client: genai.Client,
+    input_queue: asyncio.Queue[str],
+    output_queue: asyncio.Queue[tuple[str, str]],
 ):
     pass
 ```
@@ -224,7 +228,9 @@ You can use `aiofiles` again for file operations.
 ```python
 _SHARD_SIZE = 5
 
-async def write_outputs(output_dir: pathlib.Path, output_queue: asyncio.Queue):
+async def write_outputs(
+    output_dir: pathlib.Path, output_queue: asyncio.Queue[tuple[str, str]]
+):
     return 
 ```
 
@@ -292,7 +298,7 @@ _QUEUE_SIZE = 5
 ### Step 2 - Solution
 
 ```python
-async def read_inputs(input_dir: pathlib.Path, input_queue: asyncio.Queue):
+async def read_inputs(input_dir: pathlib.Path, input_queue: asyncio.Queue[str]):
     for path in input_dir.iterdir():
         async with aiofiles.open(path) as f:
             async for prompt in f:
@@ -306,7 +312,9 @@ async def read_inputs(input_dir: pathlib.Path, input_queue: asyncio.Queue):
 
 ```python
 async def generate_with_retry(
-    client: genai.Client, input_queue: asyncio.Queue, output_queue: asyncio.Queue
+    client: genai.Client,
+    input_queue: asyncio.Queue[str],
+    output_queue: asyncio.Queue[tuple[str, str]],
 ):
     prompt = await input_queue.get()
     try:
@@ -324,7 +332,9 @@ async def generate_with_retry(
 
 
 async def generate_content(
-    client: genai.Client, input_queue: asyncio.Queue, output_queue: asyncio.Queue
+    client: genai.Client,
+    input_queue: asyncio.Queue[str],
+    output_queue: asyncio.Queue[tuple[str, str]],
 ):
     try:
         while True:
@@ -338,7 +348,9 @@ async def generate_content(
 ### Step 4 - Solution
 
 ```python
-async def write_outputs(output_dir: pathlib.Path, output_queue: asyncio.Queue):
+async def write_outputs(
+    output_dir: pathlib.Path, output_queue: asyncio.Queue[tuple[str, str]]
+):
     try:
         # Create parent directories if they don't exist
         output_dir.mkdir(parents=True, exist_ok=True)
