@@ -4,17 +4,17 @@
 
 In this challenge, you will build an async request batcher for the [Gemini Embedding API](https://ai.google.dev/gemini-api/docs/embeddings).
 
-Many applications require batching API calls for efficiency. Say you're building an application such as a search engine that requires generating embeddings for a stream of queries.
+Many applications require batching API calls for efficiency. Say you're building an application that requires generating embeddings for a stream of queries (e.g., a search engine).
 
 You have two options:
 
-1. **Generate embeddings one at a time** - This is simple but each API call or request to the embedding generation service has some network latency and overhead.
-2. **Batch multiple requests together** - Combine several inputs into a single API call and minimize the network overhead.
+1. **Generate embeddings one at a time** - This is simple but each request to the embedding generation service incurs some network latency and overhead.
+2. **Batch multiple requests together** - Combine several inputs into a single request and minimize the network overhead.
 
 In this challenge, you will batch requests based on two parameters:
 
 - **`batch_size`** - Maximum number of requests in a batch
-- **`timeout`** - Maximum time to wait for a batch to fill
+- **`timeout`** - Maximum time to wait to fill a batch
 
 The batcher continuously reads from an input queue and creates a batch when the batch size is reached or when the timeout expires (resulting in a partial batch).
 
@@ -30,6 +30,16 @@ In this challenge, you will implement four async functions or coroutines:
 2. A batcher that reads from the input queue, creates batches, then adds them to the batch queue.
 3. An embedding generator that reads from the batch queue, calls the Gemini Embedding API, then adds the output to the output queue.
 4. An output logger that reads from the outputs queue and prints the outputs.
+
+## Before you start
+
+The following functions or classes are relevant for this chapter. It might be helpful to read their docs before you start:
+
+* `asyncio.Queue()` for creating async queues.
+* `asyncio.wait_for()` for implementing timeouts on async operations.
+* `asyncio.get_running_loop().time()` for tracking elapsed time.
+* `queue.task_done()` and `queue.join()` for tracking queue completion.
+* `task.cancel()` for canceling running tasks.
 
 ### Step 0
 

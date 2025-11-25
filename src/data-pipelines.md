@@ -14,6 +14,7 @@ The following functions or classes are relevant for this chapter. It might be he
 
 * `asyncio.gather()` for waiting on running tasks.
 * `asyncio.Queue()` for creating async queues.
+* `queue.task_done()` and `queue.join()` for tracking queue completion.
 * `task.cancel()` for canceling running tasks.
 * `aiofiles.open()` for async file operations.
 
