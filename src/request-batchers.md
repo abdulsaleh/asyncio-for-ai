@@ -82,21 +82,23 @@ if __name__ == "__main__":
 
 In this step, your goal is to implement the input enqueuer coroutine.
 
-This coroutine simulates a stream of inputs arriving at variable times. It adds inputs to the input queue with random delays between each input.
+This coroutine simulates a stream of inputs arriving at variable times. It adds inputs to the input queue with random delays between each input. After all inputs are added, it sends a **sentinel value** (`None`) to signal the end of the input stream.
 
 ```python
 import random
 
 _NUM_INPUTS = 100
 
-async def enqueue_inputs(input_queue: asyncio.Queue[str]):
+async def enqueue_inputs(input_queue: asyncio.Queue[str | None]):
     for i in range(_NUM_INPUTS):
         await input_queue.put(f"input-{i}")
         # Simulate variable input arrival times
         await asyncio.sleep(random.uniform(0, 0.3))
+    # Signal end of inputs with sentinel value
+    await input_queue.put(None)
 ```
 
-This simulates real-world scenarios where inputs don't arrive all at once but stream in over time.
+This simulates real-world scenarios where inputs don't arrive all at once but stream in over time. The sentinel value is a clean way to signal completion without needing to cancel tasks.
 
 ### Step 3
 
@@ -116,7 +118,7 @@ class Batcher:
         self._timeout = timeout.total_seconds()
 
     async def batch(
-        self, input_queue: asyncio.Queue[str], batch_queue: asyncio.Queue[list[str]]
+        self, input_queue: asyncio.Queue[str | None], batch_queue: asyncio.Queue[list[str] | None]
     ):
         pass
 ```
@@ -127,7 +129,7 @@ The `batch()` method should:
 2. Track the remaining timeout for the current batch. Use `asyncio.get_running_loop().time()` to get the current time.
 3. Use `asyncio.wait_for(input_queue.get(), timeout)` to wait for an input with a timeout. This will raise `asyncio.TimeoutError` if the timeout expires.
 4. If the batch size is reached or the timeout expires, add the batch to the batch queue.
-5. Handle `asyncio.CancelledError` to shut down gracefully.
+5. Check for the sentinel value (`None`). When received, send any remaining batch, then propagate the sentinel to the next queue and return.
 
 ```admonish warning title="Important"
 Make sure to update the remaining timeout after each input. As time elapses, the remaining timeout decreases. This ensures the batch times out at the correct time.
@@ -144,13 +146,13 @@ from google.genai import types
 
 async def embed_content(
     client: genai.Client,
-    batch_queue: asyncio.Queue[list[str]],
-    output_queue: asyncio.Queue[tuple[str, types.ContentEmbedding]],
+    batch_queue: asyncio.Queue[list[str] | None],
+    output_queue: asyncio.Queue[tuple[str, types.ContentEmbedding] | None],
 ):
     pass
 ```
 
-The Gemini API accepts multiple contents in a single call and returns embeddings in the same order. You need to zip the batch contents with the returned embeddings then add them to the output queue individually.
+The Gemini API accepts multiple contents in a single call and returns embeddings in the same order. You need to zip the batch contents with the returned embeddings then add them to the output queue individually. When you receive the sentinel value, propagate it to the output queue and return.
 
 ### Step 5
 
@@ -160,10 +162,12 @@ This coroutine reads from the output queue and prints each (content, embedding) 
 
 ```python
 async def log_outputs(
-    output_queue: asyncio.Queue[tuple[str, types.ContentEmbedding]],
+    output_queue: asyncio.Queue[tuple[str, types.ContentEmbedding] | None],
 ):
     pass
 ```
+
+Check for the sentinel value and return when received.
 
 ### Step 6
 
@@ -185,7 +189,7 @@ Then create the tasks:
 3. Create the embedding generator task.
 4. Create the output logger task.
 
-After creating the tasks, you need to wait for them to complete in the correct order and gracefully handle shutdown.
+After creating the tasks, you can wait for all of them to complete using `asyncio.gather()`. With sentinel values, tasks will shut down gracefully on their own without cancellation.
 
 Run your code and verify that:
 
@@ -215,29 +219,35 @@ First let's define all the imports and type aliases:
 import asyncio
 import random
 from datetime import timedelta
-from typing import TypeAlias
+from typing import AsyncIterator, TypeAlias
 
 from google import genai
 from google.genai import types
 
 _NUM_INPUTS = 100
+_BATCH_SIZE = 8
+_TIMEOUT_SECONDS = 1
+_INPUT_DELAY_SECONDS = 0.3
 
-Input = str
+
+Input: TypeAlias = str
 InputBatch: TypeAlias = list[Input]
 ```
 
 ### Step 2 - Solution
 
 ```python
-async def enqueue_inputs(input_queue: asyncio.Queue[Input]):
+async def enqueue_inputs(input_queue: asyncio.Queue[Input | None]):
     for i in range(_NUM_INPUTS):
         await input_queue.put(f"input-{i}")
         # Simulate variable input arrival times
-        await asyncio.sleep(random.uniform(0, 0.3))
+        await asyncio.sleep(random.uniform(0, _INPUT_DELAY_SECONDS))
+    # Signal end of inputs with sentinel value
+    await input_queue.put(None)
     print("All inputs enqueued.")
 ```
 
-This coroutine adds inputs to the queue with random delays. The random delays simulate real-world scenarios where inputs arrive at variable rates.
+This coroutine adds inputs to the queue with random delays. The random delays simulate real-world scenarios where inputs arrive at variable rates. After all inputs are enqueued, we send a sentinel value (`None`) to signal that no more inputs are coming. This allows downstream consumers to shut down gracefully without explicit cancellation.
 
 ### Step 3 - Solution
 
@@ -247,49 +257,66 @@ class Batcher:
         self._batch_size = batch_size
         self._timeout = timeout.total_seconds()
 
-    async def batch(
-        self, input_queue: asyncio.Queue[Input], batch_queue: asyncio.Queue[InputBatch]
-    ):
-        try:
-            loop = asyncio.get_running_loop()
+    async def _batches(
+        self, input_queue: asyncio.Queue[Input | None]
+    ) -> AsyncIterator[InputBatch | None]:
+        """Yields batches until sentinel received. Yields None as final value."""
+        loop = asyncio.get_running_loop()
+
+        while True:
+            batch = []
+            start = loop.time()
+            timeout = self._timeout
+
             while True:
-                batch = []
-                start = loop.time()
-                timeout = self._timeout
-                while True:
-                    try:
-                        item = await asyncio.wait_for(input_queue.get(), timeout)
-                    except asyncio.TimeoutError:
-                        # Batch timed out.
-                        elapsed = loop.time() - start
-                        print(f"Batch timed out after {elapsed} seconds.")
-                        break
-
-                    batch.append(item)
-
-                    # Update the timeout since some time has elapsed.
+                try:
+                    item = await asyncio.wait_for(input_queue.get(), timeout)
+                except asyncio.TimeoutError:
                     elapsed = loop.time() - start
-                    timeout = self._timeout - elapsed
+                    print(f"Batch timed out after {elapsed} seconds.")
+                    break
 
-                    if len(batch) == self._batch_size:
-                        # Batch is full.
-                        print('Batch is full.')
-                        break
+                if item is None:
+                    # Received sentinel value.
+                    input_queue.task_done()
+                    if batch:
+                        yield batch
+                    yield None
+                    return
 
-                if batch:
-                    print(f"Batch size is {len(batch)}")
-                    await batch_queue.put(batch)
-                    for _ in batch:
-                        input_queue.task_done()
+                batch.append(item)
+                elapsed = loop.time() - start
+                timeout = self._timeout - elapsed
 
-        except asyncio.CancelledError:
-            print("Shutting down batcher...")
+                if len(batch) == self._batch_size:
+                    print("Batch is full.")
+                    break
+
+            if batch:
+                yield batch
+                for _ in batch:
+                    input_queue.task_done()
+
+    async def batch(
+        self,
+        input_queue: asyncio.Queue[Input | None],
+        batch_queue: asyncio.Queue[InputBatch | None],
+    ):
+        async for batch in self._batches(input_queue):
+            if batch is None:
+                # Propagate sentinel to next stage
+                await batch_queue.put(None)
+                print("Shutting down batcher...")
+                return
+            print(f"Batch size is {len(batch)}")
+            await batch_queue.put(batch)
 ```
 
-Note how:
+Some things to note:
 
 - We track the elapsed time and update the remaining timeout after each input. This ensures batches time out at the correct time regardless of when inputs arrive.
 - We use `asyncio.wait_for()` to implement the timeout. This raises `asyncio.TimeoutError` when the timeout expires.
+- We check for the sentinel value (`None`). When received, we send any remaining batch, propagate the sentinel to the next queue, and return. This gracefully shuts down the batcher without needing task cancellation.
 - We call `input_queue.task_done()` for each item in the batch to properly track queue completion.
 - Empty batches are skipped to avoid sending empty API requests.
 
@@ -298,44 +325,56 @@ Note how:
 ```python
 async def embed_content(
     client: genai.Client,
-    batch_queue: asyncio.Queue[InputBatch],
-    output_queue: asyncio.Queue[tuple[Input, types.ContentEmbedding]],
+    batch_queue: asyncio.Queue[InputBatch | None],
+    output_queue: asyncio.Queue[tuple[Input, types.ContentEmbedding] | None],
 ):
-    try:
-        while True:
-            batch = await batch_queue.get()
-            result = await client.aio.models.embed_content(
-                model="gemini-embedding-001",
-                contents=batch,
-                config=types.EmbedContentConfig(output_dimensionality=3),
-            )
-            if result.embeddings is None:
-                raise ValueError("No embeddings returned from the API.")
+    while True:
+        batch = await batch_queue.get()
 
-            for content, embedding in zip(batch, result.embeddings):
-                await output_queue.put((content, embedding))
+        if batch is None:
+            # Received sentinel value.
+            break
 
-            batch_queue.task_done()
+        result = await client.aio.models.embed_content(
+            model="gemini-embedding-001",
+            contents=batch,
+            config=types.EmbedContentConfig(output_dimensionality=3),
+        )
+        if result.embeddings is None:
+            raise ValueError("No embeddings returned from the API.")
 
-    except asyncio.CancelledError:
-        print("Shutting down embedding task...")
+        for content, embedding in zip(batch, result.embeddings):
+            await output_queue.put((content, embedding))
+
+        batch_queue.task_done()
+
+    # Propagate sentinel to next stage
+    await output_queue.put(None)
+    batch_queue.task_done()
+    print("Shutting down embedding task...")
 ```
 
-The Gemini API returns embeddings in the same order as the input contents. We use `zip()` to pair each content with its embedding, then add them individually to the output queue.
+The Gemini API returns embeddings in the same order as the input contents. We use `zip()` to pair each content with its embedding, then add them individually to the output queue. When we receive the sentinel value, we propagate it to the output queue and return.
 
 ### Step 5 - Solution
 
 ```python
 async def log_outputs(
-    output_queue: asyncio.Queue[tuple[Input, types.ContentEmbedding]],
+    output_queue: asyncio.Queue[tuple[Input, types.ContentEmbedding] | None],
 ):
-    try:
-        while True:
-            content, embedding = await output_queue.get()
-            print(f"Content: {content} -> Embedding: {embedding.values}")
-            output_queue.task_done()
-    except asyncio.CancelledError:
-        print("Shutting down writer...")
+    while True:
+        output = await output_queue.get()
+
+        if output is None:
+            # Received sentinel value.
+            break
+
+        content, embedding = output
+        print(f"Content: {content} -> Embedding: {embedding.values}")
+        output_queue.task_done()
+
+    output_queue.task_done()
+    print("Shutting down writer...")
 ```
 
 ### Step 6 - Solution
@@ -347,46 +386,31 @@ async def main():
     output_queue = asyncio.Queue()
 
     client = genai.Client()
-    batcher = Batcher(batch_size=8, timeout=timedelta(seconds=1))
+    batcher = Batcher(
+        batch_size=_BATCH_SIZE, timeout=timedelta(seconds=_TIMEOUT_SECONDS)
+    )
 
     enqueue_task = asyncio.create_task(enqueue_inputs(input_queue))
     batcher_task = asyncio.create_task(batcher.batch(input_queue, batch_queue))
     embed_task = asyncio.create_task(embed_content(client, batch_queue, output_queue))
     log_task = asyncio.create_task(log_outputs(output_queue))
 
-    # Wait until the elements in each queue have been processed, then cancel tasks.
-    await enqueue_task
-    await input_queue.join()
-
-    batcher_task.cancel()
-    await batcher_task
-
-    await batch_queue.join()
-
-    embed_task.cancel()
-    await embed_task
-
-    await output_queue.join()
-
-    log_task.cancel()
-    await log_task
+    # Wait for all tasks to complete gracefully via sentinel values
+    await asyncio.gather(enqueue_task, batcher_task, embed_task, log_task)
 
 
 asyncio.run(main())
 ```
 
-This is how the shutdown sequence works:
+This is how the shutdown sequence works using sentinel values:
 
-1. First, wait for all inputs to be enqueued (`await enqueue_task`).
-2. Wait for the input queue to be empty (`await input_queue.join()`), then cancel the batcher since there are no more inputs.
-3. Wait for the batch queue to be empty (`await batch_queue.join()`), then cancel the embedding task since there are no more batches.
-4. Wait for the output queue to be empty (`await output_queue.join()`), then cancel the logger since there are no more outputs.
+1. The input enqueuer finishes adding all inputs, then sends a sentinel value (`None`) to the input queue.
+2. The batcher receives the sentinel, sends any remaining batch, propagates the sentinel to the batch queue, and returns.
+3. The embedding task receives the sentinel, propagates it to the output queue, and returns.
+4. The logger receives the sentinel and returns.
+5. All tasks complete naturally, and `asyncio.gather()` returns.
 
-This ensures graceful shutdown without losing any data.
-
-```admonish info
-Another option is to pass a "poison pill" or a None sentinel to notify the consumers to shut down instead of cancelling them explicitly. 
-```
+This approach is cleaner than explicit cancellation because each stage knows when to shut down based on the sentinel value.
 
 Now let's run this and check the output:
 

@@ -120,7 +120,7 @@ async def main():
 ```admonish warning title="Important"
 The consumers loop forever waiting on new items. You need to cancel the consumers explicitly after the producers are done and the queue is empty.
 
-Another option is to pass a "poison pill" or a None sentinel to notify the consumer to shut down instead of cancelling it explicitly. 
+Another option is to pass a "poison pill" or a None sentinel to notify the consumer to shut down instead of cancelling it explicitly. See the [Request Batchers](request-batchers.md) chapter for an example of using sentinel values to gracefully shut down pipeline stages.
 ```
 
 ---
