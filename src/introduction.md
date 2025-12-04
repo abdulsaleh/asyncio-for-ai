@@ -1,12 +1,13 @@
 # Introduction
 
-AI applications spend a lot of time waiting.
+If you've used the OpenAI or Gemini API, you've probably seen `asyncio` scattered throughout the documentation. You might've copied `async/await` without understanding what it does. You might've wondered if it actually matters.
 
-They wait on model responses, database queries, or even agent tool calls. Most AI applications are IO-bound. They wait on external services, not CPU cycles.
+It matters.
 
-`asyncio` is a library for writing faster, more scalable IO-bound code in Python. It uses `async/await` syntax to run concurrent code, allowing you to send hundreds of model requests at once instead of one at a time.
+`asyncio` is a library for writing concurrent code in Python. You can use `asyncio` to make concurrent model API calls, sending 100s of requests concurrently instead of one at a time.
 
-Making concurrent API calls is the most common usecase of `asyncio`, but you can also use it to build way cooler things like rate limiters, producer-consumer pipelines, or web crawlers. This is a guide about building those cool things.
+Making concurrent API calls is a common use case of `asyncio`, but you can also use it to build way cooler things like rate limiters, producer-consumer pipelines, and web crawlers. This guide is about building those cool things.
+
 
 ## How this guide is structured
 
