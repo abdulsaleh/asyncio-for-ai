@@ -1,12 +1,12 @@
 # Introduction
 
-If you've used the OpenAI or Gemini API, you've probably seen `asyncio` scattered throughout the documentation. You might've copied `async/await` without understanding what it does. You might've wondered if it actually matters.
+If you've used the OpenAI or Gemini API, you've probably seen `asyncio` throughout the documentation. You might've copied `async/await` without understanding what it does. You might've wondered if it actually matters.
 
 It matters.
 
 `asyncio` is a library for writing concurrent code in Python. You can use `asyncio` to make concurrent model API calls, sending 100s of requests concurrently instead of one at a time.
 
-Making concurrent API calls is a common use case of `asyncio`, but you can also use it to build way cooler things like rate limiters, producer-consumer pipelines, and web crawlers. This guide is about building those cool things.
+Making API calls is a common use case of `asyncio`, but you can also use it to build way cooler things like rate limiters, producer-consumer pipelines, and web crawlers. This guide is about building those cool things.
 
 
 ## How this guide is structured
@@ -28,7 +28,7 @@ Try to solve each challenge yourself first. Research shows that [productive fail
 
 Hi! I'm Abdul. I build infrastructure for Gemini fine-tuning and batch inference at Google. I care about making AI development easier, faster, and more accessible.
 
-If you find this guide helpful, check out my blog at [abdulsaleh.dev](https://www.abdulsaleh.dev/).
+Check out my blog at [abdulsaleh.dev](https://www.abdulsaleh.dev/).
 
 ## Source Code
 

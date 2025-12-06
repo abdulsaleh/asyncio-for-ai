@@ -4,13 +4,13 @@
 
 In this challenge, you will build a concurrent web crawler with `asyncio`. AI models often train on data scraped from the web so efficient web crawlers are important for collecting training data at scale.
 
-Instead of fetching pages one at a time, the crawler processes multiple requests concurrently. This is more efficient because most of the time is spent waiting for responses so it can happen concurrently.
+Instead of fetching pages one at a time, the crawler will processes requests concurrently which is more efficient.
 
 The crawler will:
 
 1. Maintain a queue of URLs to visit
 2. Use multiple worker tasks to fetch and parse pages concurrently
-3. Track visited URLs to avoid duplicates, extract links from each page, and add new URLs to the queue
+3. Track visited URLs to avoid duplicates, extract URLs from each page, and add them to the queue
 4. Output parsed pages to a separate queue for downstream processing
 
 ## Before you start
