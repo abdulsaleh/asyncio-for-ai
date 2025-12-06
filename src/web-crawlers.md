@@ -13,7 +13,6 @@ The crawler will:
 3. Track visited URLs to avoid duplicates, extract links from each page, and add new URLs to the queue
 4. Output parsed pages to a separate queue for downstream processing
 
-
 ## Before you start
 
 The following functions or classes are relevant for this chapter. It might be helpful to read their docs before you start:
@@ -34,8 +33,7 @@ To get started, install the required packages:
 pip install aiohttp beautifulsoup4
 ```
 
-We'll use [web-scraping.dev](https://web-scraping.dev/products) as our test site since it's designed for web scraping practice. But you can also use this web crawler for scraping other sites (e.g. Wikipedia).
-
+We'll use [web-scraping.dev](https://web-scraping.dev/products) (`https://web-scraping.dev/products`) since it's designed for web scraping practice. But you can also use this web crawler for scraping other sites (e.g. Wikipedia).
 
 ### Step 1
 
@@ -104,13 +102,9 @@ def extract_urls(html: str, url: str) -> set[str]:
 
 ### Step 3
 
-In this step, your goal is to implement the `WebCrawler` class with its worker tasks and shutdown logic.
+In this step, your goal is to implement the `WebCrawler` class with its worker tasks.
 
-The crawler needs to maintain three pieces of state:
-
-1. **`_crawl_queue`**: Queue of URLs waiting to be crawled
-2. **`_visited`**: Set of URLs we've already seen (to avoid duplicates)
-3. **`_lock`**: Lock to protect the visited set from race conditions
+The crawler uses breadth-first search, so it needs to maintain a queue of urls to visit, a set of visited urls, and a lock to protect the set:
 
 ```python
 import asyncio
@@ -127,11 +121,6 @@ class WebCrawler:
             self._crawl_queue.put_nowait(url)
             self._visited.add(url)
 
-    async def crawl(
-        self, num_workers: int, parsed_queue: asyncio.Queue[ParsedPage | None]
-    ) -> None:
-        pass
-
     async def _crawl_task(
         self,
         parsed_queue: asyncio.Queue[ParsedPage | None],
@@ -139,64 +128,48 @@ class WebCrawler:
     ) -> None:
         pass
 
-    async def _wait_until_done(self, crawl_tasks: list[asyncio.Task]):
-        """Waits for crawling to complete and shuts down tasks."""
+    async def crawl(
+        self, num_workers: int, parsed_queue: asyncio.Queue[ParsedPage | None]
+    ) -> None:
         pass
 ```
 
-Note how we add seed URLs to both the queue and the visited set. This ensures we process them but don't visit them twice.
+We initialize the crawl queue and visited set with the seed urls. The worker tasks can then start reading pages from the crawl queue.
 
 #### Implementing the worker task
 
-The `_crawl_task()` method is the core of the crawler. Each worker continuously:
+The `_crawl_task()` method is what actually executes the breadth-first search. Each crawl task:
 
 1. Gets a URL from the crawl queue
 2. Fetches and parses the page
-3. Adds the parsed result to the output queue
+3. Adds the parsed result to the output `parsed_queue`
 4. Extracts child URLs and adds new ones to the crawl queue
 
-When adding child URLs to the crawl queue, you need to:
-
-1. Acquire the lock to safely access the visited set
-2. Check if each URL has been visited
-3. Check if we've reached the max page limit
-4. Add new URLs to both the visited set and the crawl queue
-
-```admonish warning title="Important"
-The visited set is shared across all worker tasks, so you must use a lock when reading or writing to it. Without the lock, multiple tasks might visit the same URL or you might hit race conditions.
-```
-
-Make sure to call `self._crawl_queue.task_done()` in a `finally` block so the queue completion is tracked even if an error occurs.
+The crawl task gets new urls from the crawl queue in a loop until the queue is empty. We should stop adding new pages after we've visited `max_pages`.
 
 #### Implementing the main crawl method
 
 The `crawl()` method should:
 
-1. Create an `aiohttp.ClientSession`
+1. Initialize the shared client session.
 2. Spawn multiple worker tasks
-3. Wait for the queue to be empty
+3. Wait for the crawl queue to be empty
 4. Cancel all workers gracefully
-
-The shutdown sequence in `_wait_until_done()` should:
-
-1. Wait for the crawl queue to be empty using `await self._crawl_queue.join()`
-2. Cancel all worker tasks
-3. Gather the tasks with `return_exceptions=True` to collect any cancellation exceptions
 
 ### Step 4
 
-In this step, your goal is to implement the output logger and main function.
+In this step, your goal is to implement the output logger.
 
-The output logger reads parsed pages from the output queue and processes them. In a real system, you might save the HTML to disk, extract data, or index it in a database. For this challenge, we'll just log the results.
+The output logger reads parsed pages from the output queue and processes them. In a real system, you might save the HTML to disk or a database, but for this challenge, we'll just print the results.
 
 ```python
 async def log_results(parsed_queue: asyncio.Queue[ParsedPage | None]):
     pass
 ```
 
-Note the use of a sentinel value (`None`) to signal shutdown. When the crawler finishes, we add `None` to the queue to tell the logger to stop.
+### Step 5
 
-Now tie everything together in the main function:
+Now tie everything together in the main function. Create and run the logger and crawler tasks.
 
 ```python
 async def main():
@@ -208,7 +181,7 @@ async def main():
 
     await crawler.crawl(num_workers=10, parsed_queue=parsed_queue)
 
-    # Stop writer after all crawlers complete
+    # Optionally pass sentinel value to shut down logger.
     await parsed_queue.put(None)
     await log_task
 
@@ -219,20 +192,16 @@ Run your crawler and verify that:
 
 * Multiple pages are fetched concurrently
 * Duplicate URLs are not visited
-* The crawler stops after reaching the max page limit or exhausting all links
-* All output is logged properly
+* The crawler stops after reaching the max page limit or visiting all links
+* Using 1 worker is slower than using multiple.
 
 ## Going Further
 
-* Implement robots.txt parsing to respect crawl rules. Use the `robotexclusionrulesparser` library to check if URLs are allowed.
+* Add a `max_depth` limit to control the depth of the search.
 
-* Add depth tracking to limit how far from the seed URLs you crawl. Some sites have infinite link chains that will keep your crawler running forever.
+* Add request throttling per domain to be polite to servers. Use the rate limiter from the [Rate Limiters](rate-limiters.md) chapter. For an added challenge, use separate rate limiters for each domain.
 
-* Implement a priority queue instead of a regular queue. Prioritize pages based on URL patterns, page rank, or distance from seed URLs.
-
-* Add request throttling per domain to be polite to servers. Use the rate limiter from the [Rate Limiters](rate-limiters.md) chapter but maintain separate rate limiters for each domain.
-
-* Extend the crawler to extract structured data (product names, prices, etc.) from the parsed HTML. You could create a pipeline that passes parsed pages to multiple downstream consumers.
+* The `extract_urls` function call and `BeautifulSoup` parsing is *not* async so it blocks the event loop. Try using `loop.run_in_executor()` to extract the URLs. Does it affect performance? Why or why not?
 
 ```admonish success title=""
 **Now take some time to attempt the challenge before looking at the solution!**
@@ -308,10 +277,6 @@ async def fetch_and_parse(url: str, session: aiohttp.ClientSession) -> ParsedPag
         return parsed_page
 ```
 
-We separate the parsing logic into a synchronous `parse_page()` function. This makes the code easier to test and keeps the async networking code separate from the HTML parsing.
-
-The `async with session.get(url)` ensures the response is properly closed after we read the HTML. This is important for connection pooling and resource cleanup.
-
 ### Step 3 - Solution
 
 ```python
@@ -378,21 +343,17 @@ class WebCrawler:
                 self._crawl_queue.task_done()
 ```
 
-We initialize the crawler with seed URLs. Using `put_nowait()` instead of `await put()` is safe here because the queue is empty and guaranteed to have space.
+The `crawl()` method creates an `aiohttp.ClientSession` that's shared across all workers. This enables connection pooling and is more efficient than creating a new session per request.
 
-Adding seed URLs to the visited set prevents workers from visiting them twice if they're discovered later as child URLs.
-
-The `crawl()` method creates an `aiohttp.ClientSession` that's shared across all workers. This enables connection pooling and is much more efficient than creating a new session per request.
-
-The `_crawl_task()` method is the core of the crawler. Some things to note:
+The `_crawl_task()` method implements the breadth-first search. Note that:
 
 * The `while True` loop runs forever until the task is cancelled.
-* We catch `asyncio.CancelledError` when getting from the queue to handle graceful shutdown.
+* We catch `asyncio.CancelledError` when getting from the queue to handle graceful shutdown. See the [Data Pipelines](data-pipelines.md) chapter for a similar example of producer-consumer queues.
 * The lock protects the visited set. Multiple workers could try to add the same URL simultaneously without the lock.
 * We check the max pages limit inside the lock to ensure we don't exceed it.
-* The `finally` block ensures `task_done()` is called even if an error occurs, which is critical for `queue.join()` to work correctly.
+* The `finally` block ensures `task_done()` is called even if an error occurs, which is important so `queue.join()` can work correctly.
 
-The `_wait_until_done()` method waits for the queue to be empty with `queue.join()`, then cancels all workers. The `return_exceptions=True` parameter prevents `asyncio.gather()` from raising when tasks are cancelled.
+The `_wait_until_done()` method waits for the queue to be empty with `queue.join()`, then cancels all workers. 
 
 ### Step 4 - Solution
 
@@ -409,8 +370,11 @@ async def log_results(parsed_queue: asyncio.Queue[ParsedPage | None]) -> None:
         print(f"Logged {parsed_page.url} with {len(parsed_page.html)} chars.")
 
         parsed_queue.task_done()
+```
 
+### Step 5 - Solution
 
+```python
 async def main():
     urls = [
         "https://web-scraping.dev/products",
@@ -430,41 +394,31 @@ async def main():
 asyncio.run(main())
 ```
 
-The shutdown sequence works like this:
-
-1. The crawler spawns 10 workers that all pull URLs from the crawl queue.
-2. Workers fetch pages concurrently and add child URLs back to the queue.
-3. When the queue is empty (no more URLs to crawl), `queue.join()` returns.
-4. We cancel all worker tasks.
-5. We send a sentinel value (`None`) to the output queue to signal the logger to stop.
-6. The logger receives the sentinel and shuts down gracefully.
-
-This pattern separates crawling from processing. You could easily extend this to have multiple downstream consumers reading from the parsed queue (one for saving to disk, one for indexing, one for data extraction, etc.).
-
 Now let's run this and check the output:
 
 ```bash
 python script.py
 
-Parsed https://web-scraping.dev/products.
-Parsed https://web-scraping.dev/product/1.
-Logged https://web-scraping.dev/products with 15234 chars.
-Parsed https://web-scraping.dev/product/2.
-Logged https://web-scraping.dev/product/1 with 8472 chars.
-Parsed https://web-scraping.dev/product/3.
-Logged https://web-scraping.dev/product/2 with 8391 chars.
-Parsed https://web-scraping.dev/product/4.
-Logged https://web-scraping.dev/product/3 with 8456 chars.
-Parsed https://web-scraping.dev/product/5.
-Logged https://web-scraping.dev/product/4 with 8512 chars.
 ...
-Parsed https://web-scraping.dev/product/97.
-Logged https://web-scraping.dev/product/95 with 8523 chars.
-Parsed https://web-scraping.dev/product/98.
-Logged https://web-scraping.dev/product/97 with 8498 chars.
-Parsed https://web-scraping.dev/product/99.
-Logged https://web-scraping.dev/product/98 with 8476 chars.
-Logged https://web-scraping.dev/product/99 with 8512 chars.
+Parsed https://web-scraping.dev/products?category=household.
+Parsed https://web-scraping.dev/products?category=consumables.
+Parsed https://web-scraping.dev/cart.
+Parsed https://web-scraping.dev/testimonials.
+Logged https://web-scraping.dev/sitemap.xml with 6689 chars.
+Logged https://web-scraping.dev/file-download with 19476 chars.
+Logged https://web-scraping.dev/products?category=household with 12582 chars.
+Logged https://web-scraping.dev/products?category=consumables with 17133 chars.
+Logged https://web-scraping.dev/cart with 11856 chars.
+Logged https://web-scraping.dev/testimonials with 29975 chars.
+Parsed https://web-scraping.dev/products?page=5.
+Parsed https://web-scraping.dev/login.
+Parsed https://web-scraping.dev/products?page=2.
+Parsed https://web-scraping.dev/product/3.
+Parsed https://web-scraping.dev/product/5.
+...
+Logged https://web-scraping.dev/products?category=household&page=3 with 8848 chars.
+Parsed https://web-scraping.dev/products?category=consumables&page=5.
+Logged https://web-scraping.dev/products?category=consumables&page=5 with 8848 chars.
 Shutting down crawl task...
 Shutting down crawl task...
 Shutting down crawl task...
@@ -480,9 +434,7 @@ Shutting down writer...
 
 Note how:
 
-* Multiple pages are fetched and logged concurrently - the output is interleaved.
-* Crawling and logging happen in parallel using producer-consumer queues.
-* With 10 workers, pages are fetched much faster than they would be sequentially.
+* Multiple pages are fetched and logged concurrently.
 * All workers shut down gracefully when the queue is empty.
 
-With sequential crawling (1 worker), this would take minutes. With 10 concurrent workers, it completes in seconds. The more I/O-bound your workload, the more benefit you'll see from concurrency.
+This script takes about 12s to run with 1 worker and 4s to run with 5 workers as pages are fetched concurrently.
