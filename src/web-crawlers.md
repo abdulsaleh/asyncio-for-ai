@@ -353,7 +353,7 @@ The `_crawl_task()` method implements the breadth-first search. Note that:
 * We check the max pages limit inside the lock to ensure we don't exceed it.
 * The `finally` block ensures `task_done()` is called even if an error occurs, which is important so `queue.join()` can work correctly.
 
-The `_wait_until_done()` method waits for the queue to be empty with `queue.join()`, then cancels all workers. 
+The `_wait_until_done()` method waits for the queue to be empty with `queue.join()`, then cancels all workers.
 
 ### Step 4 - Solution
 
