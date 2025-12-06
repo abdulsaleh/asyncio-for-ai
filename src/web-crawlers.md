@@ -73,7 +73,7 @@ This function should:
 Always reuse the same `aiohttp.ClientSession` across requests. Creating a new session for each request is slow and inefficient. Create the session once and pass it to all worker tasks.
 ```
 
-This chapter is focused on `asyncio` patterns, not web parsing techniques, so you can use this helper function for extracting the child urls:
+You can use this helper function for extracting the child urls:
 
 ```python
 from urllib.parse import urljoin, urlparse
