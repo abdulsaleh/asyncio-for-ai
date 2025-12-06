@@ -19,4 +19,4 @@
 
 # Orchestrating Agents
 
-- [Tool Calling Agents]()
+- [Function Calling Agents]()
