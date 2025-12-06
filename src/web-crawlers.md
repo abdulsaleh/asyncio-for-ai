@@ -70,10 +70,10 @@ This function should:
 4. Return a `ParsedPage` with the URL, HTML, and child URLs.
 
 ```admonish warning title="Important"
-Always reuse the same `aiohttp.ClientSession` across requests. Creating a new session for each request is slow and wastes resources. Create the session once and pass it to all worker tasks.
+Always reuse the same `aiohttp.ClientSession` across requests. Creating a new session for each request is slow and inefficient. Create the session once and pass it to all worker tasks.
 ```
 
-This chapter is focused on `asyncio` patterns, not web parsing techniques, so you can just use the below helper function for extracting the child urls:
+This chapter is focused on `asyncio` patterns, not web parsing techniques, so you can use this helper function for extracting the child urls:
 
 ```python
 from urllib.parse import urljoin, urlparse
@@ -143,7 +143,7 @@ The `_crawl_task()` method is what actually executes the breadth-first search. E
 1. Gets a URL from the crawl queue
 2. Fetches and parses the page
 3. Adds the parsed result to the output `parsed_queue`
-4. Extracts child URLs and adds new ones to the crawl queue
+4. Extracts child URLs and adds new ones to the crawl queue if not already visited.
 
 The crawl task gets new urls from the crawl queue in a loop until the queue is empty. We should stop adding new pages after we've visited `max_pages`.
 
@@ -160,7 +160,7 @@ The `crawl()` method should:
 
 In this step, your goal is to implement the output logger.
 
-The output logger reads parsed pages from the output queue and processes them. In a real system, you might save the HTML to disk or a database, but for this challenge, we'll just print the results.
+The output logger reads parsed pages from the output queue and processes them. In a real system, you might save the HTML to disk or a database, but for this challenge, we can just print the results.
 
 ```python
 async def log_results(parsed_queue: asyncio.Queue[ParsedPage | None]):
