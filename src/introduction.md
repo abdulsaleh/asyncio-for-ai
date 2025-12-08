@@ -1,6 +1,6 @@
 # Introduction
 
-If you've used the OpenAI or Gemini API, you've probably seen `asyncio` throughout the documentation. You might've copied `async/await` without understanding what it does. You might've wondered if it actually matters.
+If you've used the OpenAI or Gemini API, you've probably seen `asyncio` throughout the API docs. You might've copied `async/await` without understanding what it does. You might've wondered if it actually matters.
 
 It matters.
 
