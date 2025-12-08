@@ -18,7 +18,7 @@ This guide walks through six real-world applications of `asyncio`:
 * **[Data Pipelines](data-pipelines.md)** — Process large datasets with producer-consumer pipelines
 * **[Request Batchers](request-batchers.md)** — Batch API requests for efficiency
 * **[Web Crawlers](web-crawlers.md)** — Efficiently crawl the web and parse web pages
-* **Function-Calling Agents** — Build agents that execute tools concurrently
+* **[Function-Calling Agents](function-agents.md)** — Build agents that execute tools concurrently
 
 Each section follows a challenge-solution format inspired by John Crickett's [Coding Challenges](https://codingchallenges.substack.com/).
 

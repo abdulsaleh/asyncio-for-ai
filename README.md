@@ -8,30 +8,29 @@ A practical guide to using Python's `asyncio` for building faster, more scalable
 
 ## About This Guide
 
-If you've used the OpenAI or Gemini API, you've probably seen `asyncio` scattered throughout the documentation. You might've copied `async/await` without understanding what it does. You might've wondered if it actually matters.
+If you've used the OpenAI or Gemini API, you've probably seen `asyncio` throughout the documentation. You might've copied `async/await` without understanding what it does. You might've wondered if it actually matters.
 
 It matters.
 
-`asyncio` is a library for writing concurrent code in Python. It can help you write faster code, especially if you're doing I/O work. Think making API calls over a network or building data pipelines that read from disk.
+`asyncio` is a library for writing concurrent code in Python. You can use `asyncio` to make concurrent model API calls, sending 100s of requests concurrently instead of one at a time.
 
-Most `asyncio` tutorials explain how it works. **This guide is about why it matters.**
+Making API calls is a common use case of `asyncio`, but you can also use it to build way cooler things like rate limiters, producer-consumer pipelines, and web crawlers. This guide is about building those cool things.
 
-This guide is about using `asyncio` to write faster, more scalable code.
 
-## What You'll Learn
+## How this guide is structured
 
 This guide walks through six real-world applications of `asyncio`:
 
-- **LLM Responses** — Call LLM APIs concurrently without blocking
-- **Rate Limiters** — Control API request throughput to stay within rate limits
-- **Data Pipelines** — Process large datasets with producer-consumer pipelines
-- **Request Batchers** — Batch multiple requests for efficiency
-- **Web Crawlers** — Efficiently crawl the web and parse web pages
-- **Tool-Calling Agents** — Build agents that execute tools concurrently
+* **LLM Responses** — Call LLM APIs concurrently without blocking
+* **Rate Limiters** — Control API request throughput to stay within rate limits
+* **Data Pipelines** — Process large datasets with producer-consumer pipelines
+* **Request Batchers** — Batch API requests for efficiency
+* **Web Crawlers** — Efficiently crawl the web and parse web pages
+* **Function-Calling Agents** — Build agents that execute tools concurrently
 
 Each section follows a challenge-solution format inspired by John Crickett's [Coding Challenges](https://codingchallenges.substack.com/).
 
-You're encouraged to attempt each challenge before reading the solution.
+Try to solve each challenge yourself first. Research shows that [productive failure](https://pubmed.ncbi.nlm.nih.gov/33180211/) leads to deeper learning, even if you struggle and can't come up with the solution.
 
 ## About me
 
