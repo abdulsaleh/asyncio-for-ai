@@ -13,7 +13,7 @@ The agent will:
 3. Run multiple API searches concurrently when the model makes multiple function calls
 4. Continue the conversation loop until the model provides a final answer
 
-An async function-calling agent is more responsive and efficient because we make the API calls once they are streamed (not blocking on the full model response), and the API calls themselves are non-blocking (they can run concurrently).
+An async function-calling agent is more responsive and efficient because it can make the API calls once they are streamed (not blocking on the full model response), and the API calls themselves are non-blocking (they can run concurrently).
 
 ## Before you start
 
