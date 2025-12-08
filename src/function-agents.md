@@ -13,6 +13,8 @@ The agent will:
 3. Run multiple API searches concurrently when the model makes multiple function calls
 4. Continue the conversation loop until the model provides a final answer
 
+An async function-calling agent is more responsive and efficient because we make the API calls once they are streamed (not blocking on the full model response), and the API calls are non-blocking (they can run concurrently).
+
 ## Before you start
 
 The following functions or classes are relevant for this chapter. It might be helpful to read their docs before you start:
@@ -24,7 +26,7 @@ The following functions or classes are relevant for this chapter. It might be he
 
 ### Step 0
 
-To get started, get a Gemini API key from [Google AI Studio](https://aistudio.google.com/app/api-keys). We use the Gemini API because it has a generous free tier and good function-calling support.
+To get started, get a Gemini API key from [Google AI Studio](https://aistudio.google.com/app/api-keys). We use the Gemini API because it has a generous free tier and function-calling support.
 
 ```bash
 export GEMINI_API_KEY="YOUR_API_KEY"
@@ -38,19 +40,25 @@ pip install google-genai aiohttp
 
 ### Step 1
 
-In this step, your goal is to define the OpenAlex search function.
+In this step, your goal is to implement the OpenAlex search function.
 
-You'll use the OpenAlex API to search for academic works. OpenAlex returns abstracts in an inverted index format, so you'll need helper functions to parse them.
-
-Define these functions:
+The search function should query the OpenAlex API and return academic works matching the search query. OpenAlex returns abstracts in an inverted index format, so you'll need to parse them.
 
 ```python
 import aiohttp
-from typing import Any
 
+async def search_openalex(
+    search: str, session: aiohttp.ClientSession
+) -> dict[str, Any]:
+    """Searches OpenAlex for works matching the search query."""
+    pass
+```
+
+You can use these helper functions:
+
+```python
 OPENALEX_API_URL = "https://api.openalex.org/works"
 MAX_RESULTS_PER_PAGE = 10
-
 
 async def fetch_openalex_works(
     session: aiohttp.ClientSession, params: dict[str, Any]
@@ -81,35 +89,16 @@ def update_abstracts(data: dict[str, Any] | None) -> None:
         if "abstract_inverted_index" in result:
             result["abstract"] = parse_abstract(result["abstract_inverted_index"])
             del result["abstract_inverted_index"]
-
-
-async def search_openalex(
-    search: str, session: aiohttp.ClientSession
-) -> dict[str, Any]:
-    """Searches OpenAlex for works matching the search query."""
-    params = {
-        "search": search,
-        "sort": "relevance_score:desc",
-        "select": ",".join(
-            [
-                "id",
-                "title",
-                "display_name",
-                "publication_year",
-                "publication_date",
-                "cited_by_count",
-                "primary_location",
-                "abstract_inverted_index",
-                "authorships",
-            ]
-        ),
-        "per_page": MAX_RESULTS_PER_PAGE,
-        "mailto": "your@email.com",
-    }
-    data = await fetch_openalex_works(session, params)
-    update_abstracts(data)
-    return data
 ```
+
+Your `search_openalex()` function should:
+
+1. Build the query parameters including the search term, sorting, and field selection
+2. Fetch the results from OpenAlex
+3. Parse the abstracts using `update_abstracts()`
+4. Return the data
+
+The fields you should select are: `id`, `title`, `display_name`, `publication_year`, `publication_date`, `cited_by_count`, `primary_location`, `abstract_inverted_index`, and `authorships`.
 
 ### Step 2
 
@@ -161,13 +150,13 @@ This function should:
 
 1. Initialize the conversation history with the user's question
 2. Enter a loop that:
-   - Streams the model response using `client.aio.models.generate_content_stream()`
-   - Processes each chunk as it arrives
-   - Collects function calls and spawns search tasks immediately
-   - Prints text content as it streams
-   - Waits for all search tasks to complete after the stream finishes
-   - Adds function responses back to the conversation history
-   - Continues the loop until no more function calls are made
+   * Streams the model response using `client.aio.models.generate_content_stream()`
+   * Processes each chunk as it arrives
+   * Collects function calls and spawns search tasks immediately
+   * Prints text content as it streams
+   * Waits for all search tasks to complete after the stream finishes
+   * Adds function responses back to the conversation history
+   * Continues the loop until no more function calls are made
 
 ```admonish tip title="Tip"
 You'll need to track both the model's response parts (for conversation history) and any search tasks that are spawned during streaming. When you detect a function call in a part, create a task immediately with `asyncio.create_task()` and add it to a list.
@@ -179,9 +168,9 @@ In this step, your goal is to create the system instruction and main function.
 
 The system instruction guides the model on how to use the search function effectively. It should encourage the model to:
 
-- Make multiple parallel searches (up to 10 at a time)
-- Iterate through multiple rounds of searches
-- Only provide a final answer after at least 3 rounds
+* Make multiple parallel searches (up to 10 at a time)
+* Iterate through multiple rounds of searches
+* Only provide a final answer after at least 3 rounds
 
 You can use this system instruction:
 
@@ -241,11 +230,9 @@ answer in this exact format:
 
 ### Example:
 
-```markdown
 Final answer: Based on available abstracts, microplastics accumulate in marine organisms through multiple pathways [Thompson et al., 2020](https://openalex.org/W3012345678), with bioaccumulation rates varying by species. Filter feeders show particularly high concentrations [Garcia & Lee, 2021](https://openalex.org/W3123456789), and transfer through trophic levels has been documented [Chen et al., 2022](https://openalex.org/W4012345670), suggesting impacts on apex predators.
 
 This analysis is based on article abstracts; detailed methodologies require consulting full papers. The literature indicates widespread microplastic contamination across marine environments [Martinez et al., 2023](https://openalex.org/W4123456781).
-```
 
 ## Workflow
 
@@ -285,8 +272,6 @@ Run your agent and verify that:
 * The model provides a final cited answer
 
 ## Going Further
-
-* Add error handling for API failures and retry logic for the OpenAlex API.
 
 * Modify the system instruction to support different research workflows (e.g., finding papers by a specific author, or papers published in a specific year range).
 
@@ -545,11 +530,10 @@ answer in this exact format:
 
 ### Example:
 
-```markdown
 Final answer: Based on available abstracts, microplastics accumulate in marine organisms through multiple pathways [Thompson et al., 2020](https://openalex.org/W3012345678), with bioaccumulation rates varying by species. Filter feeders show particularly high concentrations [Garcia & Lee, 2021](https://openalex.org/W3123456789), and transfer through trophic levels has been documented [Chen et al., 2022](https://openalex.org/W4012345670), suggesting impacts on apex predators.
 
 This analysis is based on article abstracts; detailed methodologies require consulting full papers. The literature indicates widespread microplastic contamination across marine environments [Martinez et al., 2023](https://openalex.org/W4123456781).
-```
+
 
 ## Workflow
 
@@ -584,36 +568,72 @@ Now let's run this and observe the output:
 python script.py
 
 --- Streaming response ---
+
 [Function call detected: search_openalex]
 [Arguments: {'search': 'gut microbiome mental health'}]
+
 [Function call detected: search_openalex]
-[Arguments: {'search': 'gut-brain axis'}]
+[Arguments: {'search': 'microbiota gut brain axis'}]
+
 [Function call detected: search_openalex]
-[Arguments: {'search': 'microbiota depression anxiety'}]
+[Arguments: {'search': 'probiotics anxiety depression'}]
+
+[Function call detected: search_openalex]
+[Arguments: {'search': 'dysbiosis neurological disorders'}]
+
+[Function call detected: search_openalex]
+[Arguments: {'search': 'gut bacteria neurotransmitters'}]
+
+[Function call detected: search_openalex]
+[Arguments: {'search': 'microbiome stress response'}]
+
+[Function call detected: search_openalex]
+[Arguments: {'search': 'psychobiotics'}]
+
+[Function call detected: search_openalex]
+[Arguments: {'search': 'microbiome autism'}]
+
+[Function call detected: search_openalex]
+[Arguments: {'search': 'gut brain communication'}]
+
+[Function call detected: search_openalex]
+[Arguments: {'search': 'microbiome influence mood'}]
+
+
+[Started 10 search tasks]
+
+
+[Search tasks complete]
+
+--- Streaming response ---
+
+[Function call detected: search_openalex]
+[Arguments: {'search': 'microbiome Tryptophan kynurenine serotonin'}]
+
+[Function call detected: search_openalex]
+[Arguments: {'search': 'Short-chain fatty acids SCFA influence brain function'}]
+
+[Function call detected: search_openalex]
+[Arguments: {'search': 'Butyrate brain barrier'}]
+
 
 [Started 3 search tasks]
 
-[Search tasks complete]
-
---- Streaming response ---
-Let me search for more specific mechanisms and recent findings...
-[Function call detected: search_openalex]
-[Arguments: {'search': 'gut microbiome neurotransmitters'}]
-[Function call detected: search_openalex]
-[Arguments: {'search': 'probiotics mental health'}]
-
-[Started 2 search tasks]
 
 [Search tasks complete]
 
 --- Streaming response ---
-**Final answer:** The gut microbiome influences mental health through multiple interconnected pathways, primarily via the gut-brain axis...
+The gut microbiome influences mental health through the **Microbiota-Gut-Brain (MGB) axis**, a complex, bidirectional communication network linking the gastrointestinal tract and the central nervous system through endocrine, immune, and neural signaling pathways [Cryan et al., 2019](https://openalex.org/W2970686316). This relationship means that alterations in the composition of the gut microbiota (dysbiosis) are associated with a range of neuropsychiatric and neurological disorders, including anxiety, depression, and autism spectrum disorder (ASD) [Socała et al., 2021](https://openalex.org/W3193421084).
 
+The primary mechanisms by which gut microbes modulate brain function involve the production of chemical signals. First, microbial fermentation of dietary fiber produces **short-chain fatty acids (SCFAs)**, such as butyrate, propionate, and acetate. These metabolites are crucial for maintaining the integrity of the gut barrier and the blood-brain barrier (BBB), and they function as signaling molecules that regulate neuro-immunoendocrine pathways, potentially alleviating stress-induced brain alterations [Silva et al., 2020](https://openalex.org/W3003912482); [van de Wouw et al., 2018](https://openalex.org/W2891851874). Second, gut bacteria regulate the metabolism of the amino acid tryptophan, a precursor to the neurotransmitter **serotonin (5-HT)**, which plays a critical role in mood, appetite, and sleep [O’Mahony et al., 2014](https://openalex.org/W1972237932); [Roth et al., 2021](https://openalex.org/W3137164735). Neural communication occurs directly via the **Vagus Nerve**, which transmits signals from the gut to the brain; certain beneficial bacteria strains have demonstrated anxiolytic-like effects that require the integrity of this nerve to modulate central neural pathways [Bravo et al., 2011](https://openalex.org/W2164342861). Furthermore, the microbiota helps regulate the **Hypothalamic-Pituitary-Adrenal (HPA) axis**, the body’s main stress response system, and dysbiosis can exacerbate the inflammatory processes associated with depression and increased stress reactivity [Cryan et al., 2019](https://openalex.org/W2970686316); [Kiecolt-Glaser et al., 2015](https://openalex.org/W2159036260). This research has led to the development of "psychobiotics" (probiotics or prebiotics) aimed at manipulating the MGB axis to improve symptoms of conditions like depression and anxiety [Dinan et al., 2013](https://openalex.org/W1983814959).
+
+***
+*This answer is based solely on the analysis of available academic abstracts.*
 --- Conversation complete ---
 ```
 
 Note how:
 
-* Multiple searches run in parallel within each round.
+* Multiple searches run concurrently within each round.
+* Searches are triggered as the responses are streamed. This is faster than sequentially waiting on responses and making API calls.
 * The model iterates through multiple rounds before providing the final answer.
-* Function calls and responses are clearly logged for debugging.
