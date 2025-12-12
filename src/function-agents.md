@@ -8,12 +8,12 @@ In this challenge, you will build an async function-calling agent. The agent wil
 
 The agent will:
 
-1. Stream model responses as they are generated
-2. Execute function calls as soon as they are detected in the stream
-3. Run multiple API searches concurrently when the model makes multiple function calls
+1. Stream model response
+2. Execute non-blocking function calls as soon as they are detected in the stream
+3. Make multiple function calls concurrently
 4. Continue the conversation loop until the model provides a final answer
 
-An async function-calling agent is more responsive and efficient because it can make the API calls once they are streamed (not blocking on the full model response), and the API calls themselves are non-blocking (they can run concurrently).
+An async function-calling agent is more responsive and efficient because it can interleave the API calls with the streamed model responses (not blocking on the full model response), and it can make multiple API calls can happen concurrently (not blocking on any API call).
 
 ## Before you start
 
